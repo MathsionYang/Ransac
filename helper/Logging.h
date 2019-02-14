@@ -20,7 +20,7 @@ public:
                 Tests::estimator2string(model->estimator)+".txt";
         write_log.open (filename);
         write_log << ransacOutput->getTimeMicroSeconds() <<"\n";
-        write_log << (ransacOutput->getNumberOfMainIterations() + ransacOutput->getLOIters()) <<"\n";
+        write_log << (ransacOutput->getNumberOfMainIterations() + ransacOutput->getNUmberOfLOIterarations()) <<"\n";
         write_log << ransacOutput->getNumberOfInliers() <<"\n";
         write_log.close();
     }
@@ -40,7 +40,7 @@ public:
         read_log >> points_under_treshold;
 
         std::cout << "speedup: " << time/ransacOutput->getTimeMicroSeconds() << "\n";
-        std::cout << "iterations more on " << ((int)(ransacOutput->getNumberOfMainIterations() + ransacOutput->getLOIters()) - iters) << "\n";
+        std::cout << "iterations more on " << ((int)(ransacOutput->getNumberOfMainIterations() + ransacOutput->getNUmberOfLOIterarations()) - iters) << "\n";
         std::cout << "points under threshold more on " << ((int)ransacOutput->getNumberOfInliers() - points_under_treshold) << "\n";
     }
 
@@ -50,7 +50,7 @@ public:
                 Tests::estimator2string(model->estimator) << "\n";
         file << "Runs for each image = " << N_runs << "\n";
         file << "Threshold for each image = " << model->threshold << "\n";
-        file << "Desired probability for each image = " << model->desired_prob << "\n";
+        file << "Desired probability for each image = " << model->confidence << "\n";
         file << "Inner Iterative LO = " << (model->lo == LocOpt ::InItLORsc) << "\n";
         file << "Inner Iterative Fxing LO = " << (model->lo == LocOpt ::InItFLORsc) << "\n";
         file << "Graph Cut LO = " << (model->lo == LocOpt ::GC) << "\n";

@@ -14,7 +14,7 @@ void Tests::testHomographyFitting() {
 //    exit (0);
 
     DATASET dataset = DATASET::Homogr_SIFT;
-    std::string img_name = "adam";
+    std::string img_name = "graf";
 
     ImageData gt_data (dataset, img_name);
 
@@ -38,30 +38,37 @@ void Tests::testHomographyFitting() {
     Model * model;
 
 //     ---------------------- uniform ----------------------------------
-   model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
+   model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
 //     --------------------------------------------------------------
 
 //     ---------------------- napsac ----------------------------------
-//    model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, SAMPLER::Napsac);
+//    model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Napsac);
 //     --------------------------------------------------------------
 
 // ------------------ prosac ---------------------
-//     model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
+//     model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
 //     -------------------------------------------------
 
 
-     model->lo = LocOpt ::GC;
+     model->lo = LocOpt ::NullLO;
      model->setSprt(0);
      model->setCellSize(50);
      model->setNeighborsType(NeighborsSearch::Grid);
      model->ResetRandomGenerator(false);
 
-     test (points, model, img_name, dataset, true, gt_inliers);
-//     test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
+    if (model->sampler ==  SAMPLER::Prosac) {
+//        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
+        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+    } else {
+        test (points, model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+    }
 
-//    getStatisticalResults(points, model, 10, true, gt_inliers, false, nullptr);
-//    getStatisticalResults(sorted_points, model, 100, true, gt_sorted_inliers, false, nullptr);
-
+    auto t = std::chrono::steady_clock::now();
+    cv::Mat m = cv::findHomography(points.colRange(0,2), points.colRange(2,4),cv::RANSAC, model->threshold,
+            cv::noArray(),model->max_iterations, model->confidence);
+    std::cout << (std::chrono::duration_cast<std::chrono::microseconds>
+            (std::chrono::steady_clock::now() - t).count()) << " time opencv\n";
 //    storeResultsHomography();
 }
 
@@ -107,7 +114,7 @@ void storeResultsHomography () {
 //    samplers.push_back(SAMPLER::Prosac);
 
     std::vector<LocOpt > loc_opts;
-    loc_opts.push_back(LocOpt::GC);
+    loc_opts.push_back(LocOpt::NullLO);
     bool sprt = 0;
 
     NeighborsSearch neighborsSearch = NeighborsSearch ::Grid;
@@ -131,7 +138,7 @@ void storeResultsHomography () {
             std::string mfname = name+"_m.csv";
             std::string fname = name+".csv";
 
-            Model *model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, smplr);
+            Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, smplr);
             model->lo = loc_opt;
             model->setSprt(sprt);
             model->setNeighborsType(neighborsSearch);
@@ -145,7 +152,7 @@ void storeResultsHomography () {
             int img = 0;
             for (const std::string &img_name : points_filename) {
 
-//                std::cout << img_name << "\n";
+                std::cout << img_name << "\n";
 
                 StatisticalResults * statistical_results = new StatisticalResults;
                 if (smplr == SAMPLER::Prosac) {
@@ -164,14 +171,17 @@ void storeResultsHomography () {
 //                // save results for matlab
 //                results_matlab << img_name << ",";
 //                log.saveResultsMatlab(results_matlab, statistical_results);
-                std::cout << statistical_results->avg_num_lo_iters << " ";
+//                std::cout << statistical_results->avg_num_lo_iters << " ";
+                std::cout << "Proposal Usac (err, time): ";
                 std::cout << statistical_results->avg_avg_error << " ";
-                std::cout << statistical_results->worst_case_error << " ";
-                std::cout << statistical_results->avg_time_mcs << " ";
-                std::cout << statistical_results->avg_num_iters << " ";
-                std::cout << statistical_results->num_fails_50 << "\n";
-
-
+//                std::cout << statistical_results->worst_case_error << " ";
+                std::cout << statistical_results->avg_time_mcs << "\n";
+//                std::cout << statistical_results->avg_num_iters << " ";
+//                std::cout << statistical_results->num_fails_50 << "\n";
+                float opencv_avg_err, opencv_avg_time;
+                std::cout << "OpenCV (err, time): ";
+                Tests::testOpenCV (points_imgs[img], model,gt_inliers[img], N_runs, &opencv_avg_err, &opencv_avg_time);
+                std::cout << opencv_avg_err << " " << opencv_avg_time << "\n";
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";
 //                std::cout << "- - - - - - - - - - - - - - - - - -\n";
 

@@ -7,15 +7,15 @@
 
 #include "../dataset/Dataset.h"
 
-enum ESTIMATOR  { NullE, Line2d, Homography, Fundamental, Essential };
-enum SAMPLER  { NullS, Uniform, ProgressiveNAPSAC, Napsac, Prosac, Evsac, ProsacNapsac };
+enum ESTIMATOR  { Line2d, Homography, Fundamental, Essential };
+enum SAMPLER  { Uniform, ProgressiveNAPSAC, Napsac, Prosac, Evsac, ProsacNapsac };
 enum NeighborsSearch {NullN, Nanoflann, Grid};
 enum LocOpt {NullLO, InItLORsc, InItFLORsc, GC, IRLS};
 
 class Model {
 public:
 	float threshold = 2;
-	float desired_prob = 0.95;
+	float confidence = 0.95;
 
     unsigned int sample_size;
     unsigned int min_iterations = 20;
@@ -32,8 +32,8 @@ public:
     // Graph cut
     float spatial_coherence_gc = 0.1; // spatial coherence term
 
-    ESTIMATOR estimator = NullE;
-    SAMPLER sampler = NullS;
+    ESTIMATOR estimator;
+    SAMPLER sampler;
 
     // sprt
     bool sprt = false;
@@ -57,12 +57,19 @@ public:
 	    copyFrom(model);
 	}
 
-	Model (float threshold_, unsigned int sample_number_, float desired_prob_, unsigned int knn,
+	Model (float threshold_, float desired_prob_, unsigned int knn,
 		ESTIMATOR estimator_, SAMPLER sampler_) {
-		
+		if (estimator_ == ESTIMATOR::Line2d) sample_size = 2;
+		else if (estimator_ == ESTIMATOR::Essential) sample_size = 5;
+		else if (estimator_ == ESTIMATOR::Fundamental) sample_size = 7;
+		else if (estimator_ == ESTIMATOR::Homography) sample_size = 4;
+		else {
+			std::cout << "unexpected estimator!\n";
+			exit (1);
+		}
+
 		threshold = threshold_;
-		sample_size = sample_number_;
-		desired_prob = desired_prob_;
+		confidence = desired_prob_;
 		k_nearest_neighbors = knn;
 		estimator = estimator_;
 		sampler = sampler_;
@@ -108,7 +115,7 @@ public:
 	}
 
 	void setDesiredProbability (float desired_prob) {
-		this->desired_prob = desired_prob;
+		this->confidence = desired_prob;
 	}
 
 	void setKNearestNeighbors (int k_nearest_neighbors) {
@@ -117,7 +124,7 @@ public:
 	void copyFrom (const Model * const model) {
         threshold = model->threshold;
         sample_size = model->sample_size;
-        desired_prob = model->desired_prob;
+        confidence = model->confidence;
         max_iterations = model->max_iterations;
 		min_iterations = model->min_iterations;
 		estimator = model->estimator;

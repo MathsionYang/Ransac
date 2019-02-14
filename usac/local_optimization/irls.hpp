@@ -119,6 +119,10 @@ public:
         }
         std::cout << "-----------------------------------------------\n";
     }
+
+    unsigned int getNumberIterations () override {
+        return 0;
+    }
 };
 
 #endif //USAC_IRLS_H

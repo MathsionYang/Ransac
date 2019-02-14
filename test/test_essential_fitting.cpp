@@ -60,11 +60,11 @@ void Tests::testEssentialFitting() {
     Model * model;
 
     // -------------------------- uniform -------------------------------------
-//    model = new Model (threshold, 5, confidence, knn, ESTIMATOR::Essential, SAMPLER::Uniform);
+//    model = new Model (threshold, confidence, knn, ESTIMATOR::Essential, SAMPLER::Uniform);
     // ------------------------------------------------------------------------
 
     // -------------------------- Prosac -------------------------------------
-    model = new Model (threshold, 5, confidence, knn, ESTIMATOR::Essential, SAMPLER::Prosac);
+    model = new Model (threshold, confidence, knn, ESTIMATOR::Essential, SAMPLER::Prosac);
     // ------------------------------------------------------------------------
 
     model->lo = LocOpt ::NullLO;
@@ -73,10 +73,15 @@ void Tests::testEssentialFitting() {
     model->setNeighborsType(NeighborsSearch::Grid);
     model->ResetRandomGenerator(true);
 
-    if (model->sampler == SAMPLER::Prosac)
-        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
-    else
-        test (points, model, img_name, dataset, true, gt_inliers);
+    if (model->sampler ==  SAMPLER::Prosac) {
+//        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
+        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+    } else {
+//        test (points, model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+    }
+
+    storeResultsEssential();
 }
 
 
@@ -119,7 +124,7 @@ void storeResultsEssential () {
 //    samplers.push_back(SAMPLER::Prosac);
 
     std::vector<LocOpt > loc_opts;
-    loc_opts.push_back(LocOpt::InItLORsc);
+    loc_opts.push_back(LocOpt::NullLO);
     bool sprt = 0;
 
     NeighborsSearch neighborsSearch = NeighborsSearch ::Grid;
@@ -143,7 +148,7 @@ void storeResultsEssential () {
             std::string mfname = name+"_m.csv";
             std::string fname = name+".csv";
 
-            Model *model = new Model (threshold, 5, confidence, knn, ESTIMATOR::Essential, smplr);
+            Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Essential, smplr);
             model->lo = loc_opt;
             model->setSprt(sprt);
             model->setNeighborsType(neighborsSearch);
@@ -176,12 +181,17 @@ void storeResultsEssential () {
 //                // save results for matlab
 //                results_matlab << img_name << ",";
 //                log.saveResultsMatlab(results_matlab, statistical_results);
-                std::cout << statistical_results->avg_num_lo_iters << " ";
+//                std::cout << statistical_results->avg_num_lo_iters << " ";
+                std::cout << "Proposal Usac (err, time): ";
                 std::cout << statistical_results->avg_avg_error << " ";
-                std::cout << statistical_results->worst_case_error << " ";
-                std::cout << statistical_results->avg_time_mcs << " ";
-                std::cout << statistical_results->avg_num_iters << " ";
-                std::cout << statistical_results->num_fails_50 << "\n";
+//                std::cout << statistical_results->worst_case_error << " ";
+                std::cout << statistical_results->avg_time_mcs << "\n";
+//                std::cout << statistical_results->avg_num_iters << " ";
+//                std::cout << statistical_results->num_fails_50 << "\n";
+                float opencv_avg_err, opencv_avg_time;
+                std::cout << "OpenCV (err, time): ";
+                Tests::testOpenCV (points_imgs[img], model,gt_inliers[img], N_runs, &opencv_avg_err, &opencv_avg_time);
+                std::cout << opencv_avg_err << " " << opencv_avg_time << "\n";
 
 
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";

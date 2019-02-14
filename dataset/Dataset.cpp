@@ -93,14 +93,17 @@ std::vector<std::string> Dataset::getAdelaidermfDataset () {
 
 std::vector<std::string> Dataset::getStrechaDataset () {
     std::vector<std::string> fnames;
-    std::fstream file ("../dataset/MVS/zdataset.txt");
+    std::fstream file ("../../MVS/zdataset.txt");
     if (! file.is_open()) {
         std::cout << "can read images for Strecha dataset!\n";
         exit (0);
     }
     std::string name;
+    int count = 0;
     while (file >> name) {
         fnames.push_back(name);
+        count++;
+        if (count > 10) break;
     }
     return fnames;
 }

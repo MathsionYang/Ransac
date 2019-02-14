@@ -40,11 +40,11 @@ void Tests::testFundamentalFitting() {
     Model * model;
 
     // -------------------------- uniform -------------------------------------
-    model = new Model (threshold, 7, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+    model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
     // ------------------------------------------------------------------------
 
 //     -------------------------- Prosac -------------------------------------
-//    model = new Model (threshold, 7, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
+//    model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
     // ------------------------------------------------------------------------
 
     model->lo = LocOpt ::NullLO;
@@ -53,11 +53,13 @@ void Tests::testFundamentalFitting() {
     model->setNeighborsType(NeighborsSearch::Nanoflann);
     model->ResetRandomGenerator(false);
 
-    test (points, model, img_name, dataset, true, gt_inliers);
-//    test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
-
-//    getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
-//    getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+    if (model->sampler ==  SAMPLER::Prosac) {
+        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
+        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+    } else {
+        test (points, model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+    }
 
 //     storeResultsFundamental ();
 }
@@ -128,7 +130,7 @@ void storeResultsFundamental () {
             std::string mfname = name+"_m.csv";
             std::string fname = name+".csv";
 
-            Model *model = new Model (threshold, 7, confidence, knn, ESTIMATOR::Fundamental, smplr);
+            Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, smplr);
             model->lo = loc_opt;
             model->setSprt(sprt);
             model->setNeighborsType(neighborsSearch);

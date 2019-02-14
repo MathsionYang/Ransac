@@ -22,7 +22,7 @@ void saveGTModel (DATASET dataset) {
 
         cv::hconcat(pts1, pts2, pts1);
         Estimator * estimator = new FundamentalEstimator (pts1);
-        Model * model = new Model (threshold, 7, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        Model * model = new Model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         estimator->EstimateModelNonMinimalSample(&inliers[0], inliers.size(), *model);
         std::ofstream save_model;
         save_model.open (folder + img + "_model.txt");
@@ -55,7 +55,7 @@ void saveGTModelKusvod2 () {
         cv::Mat_<float> pts;
         Reader::getPointsNby6 (folder+img+"_vpts_pts.txt", pts);
         Estimator * estimator = new FundamentalEstimator (pts);
-        Model * model = new Model (threshold, 7, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        Model * model = new Model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         std::vector<int> inliers;
         for (int i = 0; i < pts.rows; i++) {
             inliers.push_back(i);

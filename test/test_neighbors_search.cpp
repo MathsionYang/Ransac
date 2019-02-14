@@ -33,8 +33,8 @@ void Tests::testNeighborsSearchCell () {
     std::cout << "cell size | total avg time | total avg error | total avg num inliers\n";
 
     for (int cell_size = 25; cell_size <= 100; cell_size += 5) {
-//        Model *model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
-        Model *model = new Model (threshold, 7, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+//        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
+        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         model->lo = LocOpt ::GC;
         model->setNeighborsType(NeighborsSearch::Grid);
         model->setCellSize(cell_size);
@@ -102,8 +102,8 @@ void Tests::testNeighborsSearch () {
     for (NeighborsSearch neighborsSearch : neighbors_searches) {
         std::cout << nearestNeighbors2string (neighborsSearch) << "\n";
 
-        Model *model = new Model (threshold, 4, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
-//        Model *model = new Model (threshold, 7, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
+//        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         model->lo = LocOpt ::GC;
         model->setNeighborsType(neighborsSearch);
         model->setCellSize(50);

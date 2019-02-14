@@ -59,7 +59,7 @@ public:
      * The similarity was defined as the ratio of the distances in
      * the SIFT space of the best and second match.
      */
-    void initProsacSampler (unsigned int sample_size_, unsigned int points_size_, bool reset_time = true) {
+    void initProsacSampler (unsigned int sample_size_, unsigned int points_size_, bool reset_time) {
         sample_size = sample_size_;
         points_size = points_size_;
 

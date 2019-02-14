@@ -28,8 +28,8 @@ private:
     int *lo_inliers, *max_inliers, *lo_sample;
     unsigned int lo_inner_max_iterations, sample_limit;
     bool limited;
+    unsigned int lo_inner_iters, lo_iterative_iters;
 public:
-    unsigned int lo_inner_iters = 0, lo_iterative_iters = 0;
 
     ~InnerLocalOptimization () override {
         delete[] lo_inliers; delete[] lo_sample; delete[] max_inliers;
@@ -115,7 +115,7 @@ public:
             }
 
             // only for test
-            lo_iterative_iters = iterativeLocalOptimization->lo_iterative_iters;
+            lo_iterative_iters = iterativeLocalOptimization->getNumberIterations();
             //
 
             // update best model
@@ -130,6 +130,9 @@ public:
             lo_inner_iters++;
             //
         }
+    }
+    unsigned int getNumberIterations () override {
+        return lo_inner_iters + lo_iterative_iters;
     }
 };
 

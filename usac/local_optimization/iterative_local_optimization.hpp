@@ -8,9 +8,9 @@
 #include "../quality/quality.hpp"
 #include "../random_generator/uniform_random_generator.hpp"
 
-class IterativeLocalOptimization {
+class IterativeLocalOptimization : public LocalOptimization{
 private:
-    unsigned int max_iters, threshold_multiplier, sample_limit;
+    unsigned int max_iters, threshold_multiplier, sample_limit, points_size;
     bool is_sample_limit;
     float threshold_step, threshold;
     UniformRandomGenerator * uniformRandomGenerator;
@@ -18,15 +18,17 @@ private:
     Quality * quality;
 
     int * lo_sample;
+    unsigned int lo_iterative_iters;
 public:
-    unsigned int lo_iterative_iters = 0;
+
     ~IterativeLocalOptimization() {
         if (is_sample_limit) {
             delete[] lo_sample;
         }
     }
-    IterativeLocalOptimization (unsigned int points_size, Model * model, UniformRandomGenerator * uniformRandomGenerator_,
+    IterativeLocalOptimization (unsigned int points_size_, Model * model, UniformRandomGenerator * uniformRandomGenerator_,
                                 Estimator * estimator_, Quality * quality_) {
+        points_size = points_size_;
         max_iters = model->lo_iterative_iterations;
         threshold_multiplier = model->lo_threshold_multiplier;
         is_sample_limit = model->lo == LocOpt ::InItFLORsc;
@@ -47,6 +49,13 @@ public:
         quality = quality_;
 
         lo_iterative_iters = 0;
+    }
+
+    void GetModelScore (Model * model, Score * score) override {
+        int * inliers = new int[points_size];
+        quality->getInliers(model->returnDescriptor(), inliers);
+        GetScoreLimited(score, model, inliers);
+        delete[] inliers;
     }
 
      /*
@@ -134,7 +143,9 @@ public:
 
         return fail;
     }
-
+    unsigned int getNumberIterations () override {
+        return lo_iterative_iters;
+    }
 };
 
 #endif //USAC_ITERATIVELOCALOPTIMIZATION_H

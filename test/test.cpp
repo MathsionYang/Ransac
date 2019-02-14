@@ -21,7 +21,6 @@ void Tests::test (cv::Mat points,
             NearestNeighbors::getNearestNeighbors_nanoflann(points, model->k_nearest_neighbors, neighbors, false, neighbors_dists);
         } else {
             NearestNeighbors::getGridNearestNeighbors(points, model->cell_size, neighbors_v);
-            std::cout << "GOT neighbors\n";
         }
         auto end_time = std::chrono::steady_clock::now();
         std::chrono::duration<float> fs = end_time - begin_time;
@@ -30,7 +29,6 @@ void Tests::test (cv::Mat points,
 
     Ransac ransac (model, points);
 
-//    std::cout << "RUN ransac\n";
     ransac.run();
 
     RansacOutput * ransacOutput = ransac.getRansacOutput();
@@ -45,9 +43,7 @@ void Tests::test (cv::Mat points,
     splitTime(time, time_mcs);
     std::cout << time;
     std::cout << "\tMain iterations: " << ransacOutput->getNumberOfMainIterations() << "\n";
-    std::cout << "\tLO iterations: " << ransacOutput->getLOIters() <<
-    " (where " << ransacOutput->getLOInnerIters () << " (inner iters) and " <<
-              ransacOutput->getLOIterativeIters() << " (iterative iters) and " << ransacOutput->getGCIters() << " (GC iters))\n";
+    std::cout << "\tLO iterations: " << ransacOutput->getNUmberOfLOIterarations() << "\n";
 
     std::cout << "\tpoints under threshold: " << ransacOutput->getNumberOfInliers() << "\n";
 
@@ -56,7 +52,7 @@ void Tests::test (cv::Mat points,
     if (gt) {
         Estimator * estimator;
         initEstimator(estimator, model->estimator, points);
-        float error = Quality::getErrorGT_inl(estimator, ransacOutput->getModel(), gt_inliers);
+        float error = Quality::getErrorToGTInliers(estimator, ransacOutput->getModel()->returnDescriptor(), gt_inliers);
         std::cout << "Ground Truth number of inliers for same model parametres is " << gt_inliers.size() << "\n";
         std::cout << "Error to GT inliers " << error << "\n";
     }
@@ -67,4 +63,19 @@ void Tests::test (cv::Mat points,
     std::cout << "-----------------------------------------------------------------------------------------\n";
 
     Drawing::draw(ransacOutput->getModel(), dataset, img_name);
+
+    cv::Mat_<float> m = cv::findHomography(points.colRange(0,2), points.colRange(2,4), cv::RANSAC,
+                                   model->threshold, cv::noArray(), model->max_iterations, model->confidence);
+    std::cout << m << "=m\n\n";
+    Estimator * estimator1 = new HomographyEstimator(points);
+    std::cout << Quality::getErrorToGTInliers(estimator1, m, gt_inliers) << " err\n";
+//    Model * model1 = new Model(model);
+//    model1->setDescriptor(m);
+//    Model * model2 = new Model(model);
+//    model2->setDescriptor(m.inv());
+//
+//    Drawing::draw(model1, dataset, img_name);
+//    Drawing::draw(model2, dataset, img_name);
+
+    delete (ransacOutput);
 }

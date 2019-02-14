@@ -214,7 +214,7 @@ void rpoly_ak1(double op[MDP1], int* Degree, double zeror[MAXDEGREE], double zer
             // Return with failure if no convergence with 20 shifts
 
             if (jj > 20) {
-                std::cout << "\nFailure. No convergence after 20 shifts. Program terminated.\n";
+//                std::cout << "\nFailure. No convergence after 20 shifts. Program terminated.\n";
                 *Degree -= N;
                 break;
             } // End if (jj > 20)
@@ -222,7 +222,7 @@ void rpoly_ak1(double op[MDP1], int* Degree, double zeror[MAXDEGREE], double zer
         } // End while (N >= 1)
     } // End if op[0] != 0
     else { // else op[0] == 0
-        std::cout << "\nThe leading coefficient is zero. No further action taken. Program terminated.\n";
+//        std::cout << "\nThe leading coefficient is zero. No further action taken. Program terminated.\n";
         *Degree = 0;
     } // End else op[0] == 0
 

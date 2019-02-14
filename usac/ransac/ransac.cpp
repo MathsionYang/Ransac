@@ -55,13 +55,20 @@ void Ransac::run() {
     unsigned int iters = 0;
     unsigned int max_iters = model->max_iterations;
 
+    long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0;
+
     while (iters < max_iters) {
 //        std::cout << "generate sample\n";
+        auto t = std::chrono::steady_clock::now();
         sampler->generateSample(sample);
+        sampling_time+=std::chrono::duration_cast<std::chrono::microseconds>
+                (std::chrono::steady_clock::now() - t).count();
 
-//         std::cout << "samples are generated\n";
-
+//           std::cout << "samples are generated\n";
+        auto t2 = std::chrono::steady_clock::now();
         number_of_models = estimator->EstimateModel(sample, models);
+        min_estimation_time += std::chrono::duration_cast<std::chrono::microseconds>
+                (std::chrono::steady_clock::now() - t2).count();
 
 //         std::cout << "minimal model estimated\n";
 
@@ -94,7 +101,11 @@ void Ransac::run() {
 //                }
             } else {
 //                std::cout << "Get quality score\n";
+
+                auto t = std::chrono::steady_clock::now();
                  quality->getNumberInliers(current_score, models[i]->returnDescriptor());
+                eval_time += std::chrono::duration_cast<std::chrono::microseconds>
+                        (std::chrono::steady_clock::now() - t).count();
             }
 //
 //           std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
@@ -147,7 +158,7 @@ void Ransac::run() {
     }
 
     // Graph Cut lo was set, but did not run, run it
-    if (GraphCutLO && ((GraphCut *)local_optimization)->gc_iterations == 0) {
+    if (GraphCutLO && local_optimization->getNumberIterations() == 0) {
         // update best model and best score
         local_optimization->GetModelScore(best_model, best_score);
     }
@@ -164,7 +175,8 @@ void Ransac::run() {
     // get inliers from the best model
     quality->getInliers(best_model->returnDescriptor(), max_inliers);
 
-    for (unsigned int norm = 0; norm < 4 /* normalizations count */; norm++) {
+    auto t = std::chrono::steady_clock::now();
+    for (unsigned int norm = 0; norm < 3 /* normalizations count */; norm++) {
         /*
          * TODO:
          * Calculate and Save Covariance Matrix and use it next normalization with adding or
@@ -205,6 +217,13 @@ void Ransac::run() {
         best_score->copyFrom(current_score);
         best_model->setDescriptor(non_minimal_model->returnDescriptor());
     }
+    non_min_est_time = std::chrono::duration_cast<std::chrono::microseconds>
+            (std::chrono::steady_clock::now() - t).count();
+
+    std::cout << "sampling time " << sampling_time << "\n";
+    std::cout << "evaluation time " << eval_time << "\n";
+    std::cout << "minimal estimation time " << min_estimation_time << "\n";
+    std::cout << "non minimal estimation time " << non_min_est_time << "\n";
 
     std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
     // ================= here is ending ransac main implementation ===========================
@@ -212,23 +231,13 @@ void Ransac::run() {
 
     // get final inliers from the best model
     quality->getInliers(best_model->returnDescriptor(), max_inliers);
-//    std::cout << "FINAL best inl num " << best_score->inlier_number << '\n';
-//    std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n";
 
-    unsigned int lo_inner_iters = 0;
-    unsigned int lo_iterative_iters = 0;
-    if (model->lo == LocOpt::InItLORsc || model->lo == LocOpt::InItFLORsc) {
-        lo_inner_iters = ((InnerLocalOptimization *) local_optimization)->lo_inner_iters;
-        lo_iterative_iters = ((InnerLocalOptimization *) local_optimization)->lo_iterative_iters;
-    }
-    unsigned int gc_iters = 0;
-    if (GraphCutLO) {
-        gc_iters = ((GraphCut *)local_optimization)->gc_iterations;
-    }
+    unsigned int num_lo_iters = model->lo == NullLO ? 0 : local_optimization->getNumberIterations();
+
     // Store results
     ransac_output = new RansacOutput (best_model, max_inliers,
             std::chrono::duration_cast<std::chrono::microseconds>(fs).count(),
-                                      best_score->inlier_number, iters, lo_inner_iters, lo_iterative_iters, gc_iters);
+                                      best_score->inlier_number, iters, num_lo_iters);
 
     delete[] inliers;
     delete[] max_inliers;

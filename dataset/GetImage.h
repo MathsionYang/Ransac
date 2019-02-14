@@ -19,7 +19,7 @@ private:
     cv::Mat_<float> pts1, pts2, pts, sorted_pts, model;
     cv::Mat img1, img2;
     std::vector<int> inliers, sorted_inliers;
-    ESTIMATOR estimator = ESTIMATOR ::NullE;
+    ESTIMATOR estimator;
 public:
     ImageData (DATASET dataset, const std::string &img_name) {
 
@@ -67,12 +67,12 @@ public:
         } else if (dataset == DATASET::Strecha) {
             estimator = ESTIMATOR ::Essential;
 
-            folder = "../dataset/MVS/";
+            folder = "../../MVS/";
             Reader::LoadPointsFromFile(pts, (folder+img_name+"_pts.txt").c_str());
             Reader::LoadPointsFromFile(sorted_pts, (folder+img_name+"_spts.txt").c_str());
             Reader::readInliers (inliers, folder+img_name+"_inl.txt");
             EssentialEstimator essentialEstimator(pts);
-            Model m (1, 0, 0, 0, ESTIMATOR::Essential, SAMPLER::Uniform);
+            Model m (1, 0, 0, ESTIMATOR::Essential, SAMPLER::Uniform);
             essentialEstimator.EstimateModelNonMinimalSample(&inliers[0], inliers.size(), m);
             model = m.returnDescriptor().clone();
             EssentialEstimator essentialEstimator2(sorted_pts);

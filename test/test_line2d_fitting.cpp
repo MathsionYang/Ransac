@@ -48,36 +48,38 @@ void Tests::testLineFitting() {
     float threshold = 8, confidence = 0.99;
 
     // ---------------- uniform -------------------
-//     model = new Model (threshold, 2, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Uniform);
+//     model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Uniform);
 //------------------------------------------
 
     // --------------  prosac ---------------------
-    model = new Model (threshold, 2, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Prosac);
+    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Prosac);
      // ------------------------------------------------
 
     // ---------------- napsac -------------------------------
-    // model = new Model (threshold, 2, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Napsac);
+    // model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Napsac);
     // ---------------------------------------------------------------------
 
     // ----------------- evsac ------------------------------
-//    model = new Model (threshold, 2, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Evsac);
+//    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Evsac);
 // ------------------------------------------------------------
 
     // ------------------ Progressive Napsac ----------------------
-//    model = new Model (threshold, 2, confidence, knn, ESTIMATOR::Line2d, SAMPLER::ProgressiveNAPSAC);
+//    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::ProgressiveNAPSAC);
 // --------------------------------------------------------
 
      model->lo = LocOpt ::NullLO;
      model->setSprt(0);
      model->setNeighborsType(NeighborsSearch::Nanoflann);
 
-//    test (pts, model, img_name, dataset, true, gt_inliers);
-    test (sorted_pts, model, img_name, dataset, true, gt_sorted_inliers);
+    if (model->sampler ==  SAMPLER::Prosac) {
+//        test (sorted_pts, model, img_name, dataset, true, gt_sorted_inliers);
+        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+    } else {
+//        test (pts, model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+    }
 
-//     getStatisticalResults(pts, model, 1000, true, gt_inliers, false, nullptr);
-//     getStatisticalResults(sorted_pts, model, 1000, true, gt_sorted_inliers, false, nullptr);
-
-//   store_results_line2d();
+   store_results_line2d();
 }
 
 void store_results_line2d () {
@@ -132,7 +134,7 @@ void store_results_line2d () {
             results_matlab.open(mfname);
             results_total.open(fname);
 
-            Model * model = new Model(threshold, 2, confidence, knn, ESTIMATOR::Line2d, smplr);
+            Model * model = new Model(threshold, confidence, knn, ESTIMATOR::Line2d, smplr);
             model->lo = loc_opt;
             model->setSprt(sprt);
 
@@ -140,7 +142,7 @@ void store_results_line2d () {
             results_total << Tests::sampler2string(model->sampler)+"_"+Tests::estimator2string(model->estimator) << "\n";
             results_total << "Runs for each image = " << N_runs << "\n";
             results_total << "Threshold for each image = " << model->threshold << "\n";
-            results_total << "Desired probability for each image = " << model->desired_prob << "\n";
+            results_total << "Desired probability for each image = " << model->confidence << "\n";
             results_total << "LO = " << (bool) model->lo << "\n";
             results_total << "SPRT = " << (bool) model->sprt << "\n\n\n";
 

@@ -4,7 +4,6 @@
 #include "../../test/tests.h"
 #include "../../dataset/GetImage.h"
 
-class Tests;
 class Drawing {
 public:
     static void draw (Model * model, DATASET dataset, const std::string &img_name) {

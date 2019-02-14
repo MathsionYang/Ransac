@@ -31,10 +31,10 @@ void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& 
      } else if (model->sampler == SAMPLER::Prosac) {
     	    sampler = new ProsacSampler;
 	     ProsacSampler * prosac_sampler = (ProsacSampler *)sampler;
-	     prosac_sampler->initProsacSampler (model->sample_size, points_size);
+	     prosac_sampler->initProsacSampler (model->sample_size, points_size, model->reset_random_generator);
 
      } else if (model->sampler == SAMPLER::Napsac) {
-		 sampler = new NapsacSampler(model, points_size, model->reset_random_generator);
+		 sampler = new NapsacSampler(model, points_size);
 
      } else if (model->sampler == SAMPLER::Evsac) {
 	     sampler = new EvsacSampler(points, points_size, model->k_nearest_neighbors, model->sample_size);

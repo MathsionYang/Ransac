@@ -31,8 +31,8 @@ protected:
 
     int *inliers, *sample, *neighbors;
     float * errors;
+    unsigned int gc_iterations;
 public:
-    unsigned int gc_iterations = 0;
 
     ~GraphCut() override {
         delete[] errors; delete[] inliers; delete[] sample;
@@ -151,7 +151,9 @@ public:
             } // end of inner GC local optimization
         } // end of while loop
     }
-
+    unsigned int getNumberIterations () override {
+        return gc_iterations;
+    }
 private:
     void oneStepLO (Model * model) {
         /*

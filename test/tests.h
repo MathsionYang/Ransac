@@ -157,17 +157,17 @@ public:
 
             num_inlierss[i] = ransacOutput->getNumberOfInliers();
             num_iterss[i] = ransacOutput->getNumberOfMainIterations();
-            num_lo_iterss[i] = ransacOutput->getLOIters();
+            num_lo_iterss[i] = ransacOutput->getNUmberOfLOIterarations();
 
             time += times[i];
             num_inliers += ransacOutput->getNumberOfInliers();
             num_iters += ransacOutput->getNumberOfMainIterations();
-            num_lo_iters = ransacOutput->getLOIters();
+            num_lo_iters = ransacOutput->getNUmberOfLOIterarations();
 
             if (GT) {
                 Estimator * estimator;
                 initEstimator(estimator, model->estimator, points);
-                float error = Quality::getErrorGT_inl(estimator, ransacOutput->getModel(), gt_inliers);
+                float error = Quality::getErrorToGTInliers(estimator, ransacOutput->getModel()->returnDescriptor(), gt_inliers);
 
                 errors += error;
                 errorss[i] = error;
@@ -264,6 +264,42 @@ public:
         }
 
         delete errorss, num_inlierss, num_iterss, num_lo_iterss, times, results;
+    }
+
+    static void testOpenCV (const cv::Mat &points, Model * model, const std::vector<int> &gt_inliers,
+                            int N_runs, float *avg_err, float * avg_time) {
+        cv::Mat_<float> m;
+        Estimator * estimator;
+        initEstimator(estimator, model->estimator, points);
+//        estimator = new HomographyEstimator(points);
+//        estimator = new EssentialEstimator(points);
+
+        float errors = 0, time = 0;
+        for (unsigned int run = 0; run < N_runs; run++) {
+            auto begin_time = std::chrono::steady_clock::now();
+
+            if (model->estimator == ESTIMATOR::Homography) {
+                m = cv::findHomography(points.colRange(0,2), points.colRange(2,4), cv::RANSAC,
+                                       model->threshold, cv::noArray(), model->max_iterations, model->confidence);
+            } else if (model->estimator == ESTIMATOR::Essential) {
+                m = cv::findEssentialMat(points.colRange(0,2), points.colRange(2,4),
+                                         1.0 /*focal*/, cv::Point2d(0, 0) /*pp*/,cv::RANSAC,
+                                         model->confidence, model->threshold);
+            } else if (model->estimator == ESTIMATOR::Fundamental) {
+                m = cv::findFundamentalMat(points.colRange(0,2), points.colRange(2,4), cv::RANSAC,
+                                       model->threshold, model->confidence);
+            } else {
+                std::cout << "opencv undefined estimator\n";
+                exit(111);
+            }
+            std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
+//            std::cout << Quality::getErrorToGTInliers(estimator, m, gt_inliers) << " = err\n";
+            errors += Quality::getErrorToGTInliers(estimator, m, gt_inliers); // not inverse!
+            time += std::chrono::duration_cast<std::chrono::microseconds>(fs).count();
+        }
+
+        *avg_err = errors / N_runs;
+        *avg_time = time / N_runs;
     }
 
     //todo add functions for storeResults () and showResults
