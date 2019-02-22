@@ -23,7 +23,7 @@ public:
         } else if (dataset == DATASET::Syntectic) {
             return getSyntecticLine2dDataset();
         } else if (dataset == DATASET::Strecha) {
-            return getStrechaDataset();
+            return getStrechaDataset(0, false);
 
         } else if (dataset == EVD) {
             return getEVDDataset();
@@ -39,7 +39,7 @@ public:
     static std::vector<std::string> getStrechaCastleDenseImages (int option);
     static std::vector<std::string> getKusvod2Dataset ();
     static std::vector<std::string> getAdelaidermfDataset ();
-    static std::vector<std::string> getStrechaDataset ();
+    static std::vector<std::string> getStrechaDataset (int num_imgs, bool reset_time);
     static std::vector<std::string> getSyntecticLine2dDataset ();
 };
 

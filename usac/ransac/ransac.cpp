@@ -55,20 +55,20 @@ void Ransac::run() {
     unsigned int iters = 0;
     unsigned int max_iters = model->max_iterations;
 
-    long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0;
+//    long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0;
 
     while (iters < max_iters) {
 //        std::cout << "generate sample\n";
-        auto t = std::chrono::steady_clock::now();
+//        auto t = std::chrono::steady_clock::now();
         sampler->generateSample(sample);
-        sampling_time+=std::chrono::duration_cast<std::chrono::microseconds>
-                (std::chrono::steady_clock::now() - t).count();
+//        sampling_time+=std::chrono::duration_cast<std::chrono::microseconds>
+//                (std::chrono::steady_clock::now() - t).count();
 
 //           std::cout << "samples are generated\n";
-        auto t2 = std::chrono::steady_clock::now();
+//        auto t2 = std::chrono::steady_clock::now();
         number_of_models = estimator->EstimateModel(sample, models);
-        min_estimation_time += std::chrono::duration_cast<std::chrono::microseconds>
-                (std::chrono::steady_clock::now() - t2).count();
+//        min_estimation_time += std::chrono::duration_cast<std::chrono::microseconds>
+//                (std::chrono::steady_clock::now() - t2).count();
 
 //         std::cout << "minimal model estimated\n";
 
@@ -102,10 +102,10 @@ void Ransac::run() {
             } else {
 //                std::cout << "Get quality score\n";
 
-                auto t = std::chrono::steady_clock::now();
+//                auto t = std::chrono::steady_clock::now();
                  quality->getNumberInliers(current_score, models[i]->returnDescriptor());
-                eval_time += std::chrono::duration_cast<std::chrono::microseconds>
-                        (std::chrono::steady_clock::now() - t).count();
+//                eval_time += std::chrono::duration_cast<std::chrono::microseconds>
+//                        (std::chrono::steady_clock::now() - t).count();
             }
 //
 //           std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
@@ -175,8 +175,8 @@ void Ransac::run() {
     // get inliers from the best model
     quality->getInliers(best_model->returnDescriptor(), max_inliers);
 
-    auto t = std::chrono::steady_clock::now();
-    for (unsigned int norm = 0; norm < 3 /* normalizations count */; norm++) {
+//    auto t = std::chrono::steady_clock::now();
+    for (unsigned int norm = 0; norm < 4 /* normalizations count */; norm++) {
         /*
          * TODO:
          * Calculate and Save Covariance Matrix and use it next normalization with adding or
@@ -217,13 +217,13 @@ void Ransac::run() {
         best_score->copyFrom(current_score);
         best_model->setDescriptor(non_minimal_model->returnDescriptor());
     }
-    non_min_est_time = std::chrono::duration_cast<std::chrono::microseconds>
-            (std::chrono::steady_clock::now() - t).count();
+//    non_min_est_time = std::chrono::duration_cast<std::chrono::microseconds>
+//            (std::chrono::steady_clock::now() - t).count();
 
-    std::cout << "sampling time " << sampling_time << "\n";
-    std::cout << "evaluation time " << eval_time << "\n";
-    std::cout << "minimal estimation time " << min_estimation_time << "\n";
-    std::cout << "non minimal estimation time " << non_min_est_time << "\n";
+//    std::cout << "sampling time " << sampling_time << "\n";
+//    std::cout << "evaluation time " << eval_time << "\n";
+//    std::cout << "minimal estimation time " << min_estimation_time << "\n";
+//    std::cout << "non minimal estimation time " << non_min_est_time << "\n";
 
     std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
     // ================= here is ending ransac main implementation ===========================

@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "../helper/Logging.h"
 
+// do not pass points and inliers - take them from image data using dataset and img name.
 void Tests::test (cv::Mat points,
                    Model * model,
                    const std::string &img_name,

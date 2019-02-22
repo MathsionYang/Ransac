@@ -11,6 +11,8 @@
 // Direct Linear Transformation
 class DLt {
 private:
+    cv::Mat AtA, Vt, D;
+    float a1[9] = {0, 0, -1, 0, 0, 0, 0, 0, 0}, a2[9] = {0, 0, 0, 0, 0, -1, 0, 0, 0};
     const float * const points;
 public:
     DLt (const float * const points_) : points(points_) {}

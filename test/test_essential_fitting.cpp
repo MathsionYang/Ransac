@@ -87,7 +87,8 @@ void Tests::testEssentialFitting() {
 
 void storeResultsEssential () {
     DATASET dataset = DATASET ::Strecha;
-    std::vector<std::string> points_filename = Dataset::getDataset(dataset);
+//    std::vector<std::string> points_filename = Dataset::getDataset(dataset);
+    std::vector<std::string> points_filename = Dataset::getStrechaDataset(20 /*num imgs*/, true /*reset random*/);
     int num_images = points_filename.size();
     std::cout << "number of images " << num_images << "\n";
 
@@ -132,6 +133,8 @@ void storeResultsEssential () {
 
     long mean_time = 0;
     long mean_error = 0;
+    int better_by_err = 0;
+    int img_tested = 0;
 
     for (SAMPLER smplr : samplers) {
         for (auto loc_opt : loc_opts) {
@@ -161,8 +164,12 @@ void storeResultsEssential () {
 
             int img = 0;
             for (const std::string &img_name : points_filename) {
+                if (gt_inliers[img].size() < 180) {
+                    img++;
+                    continue;
+                }
 
-//                std::cout << img_name << "\n";
+                std::cout << img_name << "\n";
 
                 StatisticalResults * statistical_results = new StatisticalResults;
                 if (smplr == SAMPLER::Prosac) {
@@ -182,7 +189,7 @@ void storeResultsEssential () {
 //                results_matlab << img_name << ",";
 //                log.saveResultsMatlab(results_matlab, statistical_results);
 //                std::cout << statistical_results->avg_num_lo_iters << " ";
-                std::cout << "Proposal Usac (err, time): ";
+                std::cout << "Usac (err, time): ";
                 std::cout << statistical_results->avg_avg_error << " ";
 //                std::cout << statistical_results->worst_case_error << " ";
                 std::cout << statistical_results->avg_time_mcs << "\n";
@@ -192,7 +199,10 @@ void storeResultsEssential () {
                 std::cout << "OpenCV (err, time): ";
                 Tests::testOpenCV (points_imgs[img], model,gt_inliers[img], N_runs, &opencv_avg_err, &opencv_avg_time);
                 std::cout << opencv_avg_err << " " << opencv_avg_time << "\n";
-
+                if (statistical_results->avg_avg_error < opencv_avg_err) {
+                    better_by_err++;
+                }
+                img_tested++;
 
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";
 //                std::cout << "- - - - - - - - - - - - - - - - - -\n";
@@ -208,6 +218,7 @@ void storeResultsEssential () {
 //            results_matlab.close();
         }
     }
+    std::cout << "better by error " << better_by_err << " / " << img_tested << "\n";
 
 //    std::cout << "mean time " << (mean_time / num_images) << "\n";
 //    std::cout << "mean error " << (mean_error / num_images) << "\n";

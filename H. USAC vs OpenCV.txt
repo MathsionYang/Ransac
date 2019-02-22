@@ -1,0 +1,40 @@
+Homography matrix estimation
+100 runs for each pair. Confidence 95%. Threshold 2. Uniform sampling without local optimization.
+
+adam
+Usac (err, time): 0.774033 578
+OpenCV (err, time): 0.792992 309.07
+Brussels
+Usac (err, time): 1.61189 4657
+OpenCV (err, time): 1.79439 1508.53
+boat
+Usac (err, time): 0.745225 803
+OpenCV (err, time): 0.844258 426.83
+BostonLib
+Usac (err, time): 0.378658 514
+OpenCV (err, time): 0.390044 645.06
+city
+Usac (err, time): 0.535816 134
+OpenCV (err, time): 0.540104 432.59
+Boston
+Usac (err, time): 0.623021 3188
+OpenCV (err, time): 0.630085 762.61
+Eiffel
+Usac (err, time): 0.474224 2557
+OpenCV (err, time): 0.648522 886.71
+WhiteBoard
+Usac (err, time): 0.832601 744
+OpenCV (err, time): 0.854647 1059.71
+BruggeSquare
+Usac (err, time): 3.08671 5863
+OpenCV (err, time): 1.6329 7446.19
+ExtremeZoom
+Usac (err, time): 0.227622 400
+OpenCV (err, time): 0.227615 453.94
+BruggeTower
+Usac (err, time): 2.07228 1278
+OpenCV (err, time): 2.19347 627.87
+graf
+Usac (err, time): 1.68932 1370
+OpenCV (err, time): 1.66081 987.63
+better by error 9 / 12

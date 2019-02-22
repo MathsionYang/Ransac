@@ -60,16 +60,17 @@ void Tests::testHomographyFitting() {
 //        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
-        test (points, model, img_name, dataset, true, gt_inliers);
+//        test (points, model, img_name, dataset, true, gt_inliers);
 //        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
     }
 
-    auto t = std::chrono::steady_clock::now();
-    cv::Mat m = cv::findHomography(points.colRange(0,2), points.colRange(2,4),cv::RANSAC, model->threshold,
-            cv::noArray(),model->max_iterations, model->confidence);
-    std::cout << (std::chrono::duration_cast<std::chrono::microseconds>
-            (std::chrono::steady_clock::now() - t).count()) << " time opencv\n";
-//    storeResultsHomography();
+//    auto t = std::chrono::steady_clock::now();
+//    cv::Mat m = cv::findHomography(points.colRange(0,2), points.colRange(2,4),cv::RANSAC, model->threshold,
+//            cv::noArray(),model->max_iterations, model->confidence);
+//    std::cout << (std::chrono::duration_cast<std::chrono::microseconds>
+//            (std::chrono::steady_clock::now() - t).count()) << " time opencv\n";
+
+    storeResultsHomography();
 }
 
 
@@ -122,6 +123,7 @@ void storeResultsHomography () {
 
     long mean_time = 0;
     long mean_error = 0;
+    int better_by_err = 0;
 
     for (SAMPLER smplr : samplers) {
         for (auto loc_opt : loc_opts) {
@@ -172,7 +174,7 @@ void storeResultsHomography () {
 //                results_matlab << img_name << ",";
 //                log.saveResultsMatlab(results_matlab, statistical_results);
 //                std::cout << statistical_results->avg_num_lo_iters << " ";
-                std::cout << "Proposal Usac (err, time): ";
+                std::cout << "Usac (err, time): ";
                 std::cout << statistical_results->avg_avg_error << " ";
 //                std::cout << statistical_results->worst_case_error << " ";
                 std::cout << statistical_results->avg_time_mcs << "\n";
@@ -182,6 +184,9 @@ void storeResultsHomography () {
                 std::cout << "OpenCV (err, time): ";
                 Tests::testOpenCV (points_imgs[img], model,gt_inliers[img], N_runs, &opencv_avg_err, &opencv_avg_time);
                 std::cout << opencv_avg_err << " " << opencv_avg_time << "\n";
+                if (statistical_results->avg_avg_error < opencv_avg_err) {
+                    better_by_err++;
+                }
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";
 //                std::cout << "- - - - - - - - - - - - - - - - - -\n";
 
@@ -196,7 +201,7 @@ void storeResultsHomography () {
 //            results_matlab.close();
         }
     }
-
+    std::cout << "better by error " << better_by_err << " / " << num_images << "\n";
 //    std::cout << "mean time " << (mean_time / num_images) << "\n";
 //    std::cout << "mean error " << (mean_error / num_images) << "\n";
 

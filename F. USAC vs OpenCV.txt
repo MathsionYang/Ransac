@@ -1,0 +1,49 @@
+Fundamental matrix estimation
+100 runs for each pair. Confidence 95%. Threshold 2. Uniform sampling without local optimization.
+
+bonhall
+Usac (err, time): 0.056862 7616
+OpenCV (err, time): 0.17901 102.31
+elderhallb
+Usac (err, time): 0.0319431 4427
+OpenCV (err, time): 0.236092 76.47
+hartley
+Usac (err, time): 0.266998 5113
+OpenCV (err, time): 0.719074 117.74
+johnsona
+Usac (err, time): 0.110979 6587
+OpenCV (err, time): 0.330442 747.12
+johnsonb
+Usac (err, time): 0.0979798 13495
+OpenCV (err, time): 0.196178 286.43
+ladysymon
+Usac (err, time): 0.0965437 3631
+OpenCV (err, time): 0.50067 116.02
+library
+Usac (err, time): 0.118586 3509
+OpenCV (err, time): 0.434952 183.57
+napiera
+Usac (err, time): 0.124433 3411
+OpenCV (err, time): 0.146235 516.04
+napierb
+Usac (err, time): 7.09348 7813
+OpenCV (err, time): 8.33824 2233.79
+neem
+Usac (err, time): 46.8188 5271
+OpenCV (err, time): 47.5212 288.27
+nese
+Usac (err, time): 0.395197 4628
+OpenCV (err, time): 0.52269 123.49
+oldclassicswing
+Usac (err, time): 0.129789 4817
+OpenCV (err, time): 0.16096 98.22
+physics
+Usac (err, time): 401.936 11956
+OpenCV (err, time): 11.5152 3534.21
+sene
+Usac (err, time): 0.0769622 4943
+OpenCV (err, time): 0.143711 187.25
+unihouse
+Usac (err, time): 0.13273 8272
+OpenCV (err, time): 1.22883 278.8
+better by error 14 / 15

@@ -47,13 +47,12 @@
 #include "fundamental_solver.hpp"
 
 unsigned int FundamentalSolver::SevenPointsAlgorithm (const int * const sample, cv::Mat &F) {
-    float w[7], u[9*9], v[9*9], c[4], r[3];
+    float v[9*9], c[4], r[3];
     float* f1, *f2;
     float t0, t1, t2;
     cv::Mat_<float> A (7, 9);
-    cv::Mat_<float> U (7, 9, u);
+    cv::Mat U, W;
     cv::Mat_<float> Vt (9, 9, v);
-    cv::Mat_<float> W (7, 1, w);
     cv::Mat_<float> coeffs (1, 4, c);
     cv::Mat_<float> roots (1, 3, r);
 
@@ -86,6 +85,126 @@ unsigned int FundamentalSolver::SevenPointsAlgorithm (const int * const sample, 
     // => use the last two singular vectors as a basis of the space
     // (according to SVD properties)
     cv::SVDecomp (A, W, U, Vt, cv::SVD::MODIFY_A + cv::SVD::FULL_UV);
+    f1 = v + 7*9;
+    f2 = v + 8*9;
+
+    // f1, f2 is a basis => lambda*f1 + mu*f2 is an arbitrary f. matrix.
+    // as it is determined up to a scale, normalize lambda & mu (lambda + mu = 1),
+    // so f ~ lambda*f1 + (1 - lambda)*f2.
+    // use the additional constraint det(f) = det(lambda*f1 + (1-lambda)*f2) to find lambda.
+    // it will be a cubic equation.
+    // find c - polynomial coefficients.
+    for (int i = 0; i < 9; i++) {
+        f1[i] -= f2[i];
+    }
+
+    t0 = f2[4]*f2[8] - f2[5]*f2[7];
+    t1 = f2[3]*f2[8] - f2[5]*f2[6];
+    t2 = f2[3]*f2[7] - f2[4]*f2[6];
+
+    c[3] = f2[0]*t0 - f2[1]*t1 + f2[2]*t2;
+
+    c[2] = f1[0]*t0 - f1[1]*t1 + f1[2]*t2 -
+           f1[3]*(f2[1]*f2[8] - f2[2]*f2[7]) +
+           f1[4]*(f2[0]*f2[8] - f2[2]*f2[6]) -
+           f1[5]*(f2[0]*f2[7] - f2[1]*f2[6]) +
+           f1[6]*(f2[1]*f2[5] - f2[2]*f2[4]) -
+           f1[7]*(f2[0]*f2[5] - f2[2]*f2[3]) +
+           f1[8]*(f2[0]*f2[4] - f2[1]*f2[3]);
+
+    t0 = f1[4]*f1[8] - f1[5]*f1[7];
+    t1 = f1[3]*f1[8] - f1[5]*f1[6];
+    t2 = f1[3]*f1[7] - f1[4]*f1[6];
+
+    c[1] = f2[0]*t0 - f2[1]*t1 + f2[2]*t2 -
+           f2[3]*(f1[1]*f1[8] - f1[2]*f1[7]) +
+           f2[4]*(f1[0]*f1[8] - f1[2]*f1[6]) -
+           f2[5]*(f1[0]*f1[7] - f1[1]*f1[6]) +
+           f2[6]*(f1[1]*f1[5] - f1[2]*f1[4]) -
+           f2[7]*(f1[0]*f1[5] - f1[2]*f1[3]) +
+           f2[8]*(f1[0]*f1[4] - f1[1]*f1[3]);
+
+    c[0] = f1[0]*t0 - f1[1]*t1 + f1[2]*t2;
+
+    // solve the cubic equation; there can be 1 to 3 roots ...
+    int nroots = cv::solveCubic (coeffs, roots);
+    if (nroots < 1) return 0;
+
+    F  = cv::Mat_<float>(nroots*3,3);
+
+    auto * F_ptr = (float *) F.data;
+
+    for (int k = 0; k < nroots; k++ , F_ptr += 9) {
+        // for each root form the fundamental matrix
+        float lambda = r[k], mu = 1;
+        float s = f1[8]*r[k] + f2[8];
+
+        // normalize each matrix, so that F(3,3) (~F[8]) == 1
+        if (fabsf (s) > DBL_EPSILON) {
+            mu = 1/s;
+            lambda *= mu;
+            F_ptr[8] = 1;
+        } else {
+            F_ptr[8] = 0;
+        }
+        for (int i = 0; i < 8; i++) {
+            F_ptr[i] = f1[i] * lambda + f2[i] * mu;
+        }
+    }
+    return nroots;
+}
+
+
+
+unsigned int FundamentalSolver::SevenPointsAlgorithmEigen (const int * const sample, cv::Mat &F) {
+    float w[7], u[9*9], v[9*9], c[4], r[3];
+    float* f1, *f2;
+    float t0, t1, t2;
+    cv::Mat_<float> AtA (9, 9, float(0));
+    cv::Mat_<float> U (7, 9, u);
+    cv::Mat_<float> Vt (9, 9, v);
+    cv::Mat_<float> W (7, 1, w);
+    cv::Mat_<float> coeffs (1, 4, c);
+    cv::Mat_<float> roots (1, 3, r);
+
+    // form a linear system: i-th row of A(=a) represents
+    // the equation: (m2[i], 1)'*F*(m1[i], 1) = 0
+    auto * AtA_ptr = (float *) AtA.data;
+    float a[9] = {0, 0, 0, 0, 0, 0, 0, 0, 1};
+
+    unsigned int smpl;
+    float x1, y1, x2, y2;
+    for (unsigned int i = 0; i < 7; i++ ) {
+        smpl = 4*sample[i];
+        x1 = points[smpl];
+        y1 = points[smpl+1];
+        x2 = points[smpl+2];
+        y2 = points[smpl+3];
+
+        a[0] = x2*x1;
+        a[1] = x2*y1;
+        a[2] = x2;
+        a[3] = y2*x1;
+        a[4] = y2*y1;
+        a[5] = y2;
+        a[6] = x1;
+        a[7] = y1;
+
+        // calculate covariance for eigen
+        for (unsigned int row = 0; row < 9; row++) {
+            for (unsigned int col = row; col < 9; col++) {
+                AtA_ptr[row*9+col] += a[row]*a[col];
+            }
+        }
+    }
+
+    for (unsigned int row = 1; row < 9; row++) {
+        for (unsigned int col = 0; col < row; col++) {
+            AtA_ptr[row*9+col] = AtA_ptr[col*9+row];
+        }
+    }
+
+    cv::eigen(AtA, W, Vt);
     f1 = v + 7*9;
     f2 = v + 8*9;
 

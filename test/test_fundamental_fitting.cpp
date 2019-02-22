@@ -15,8 +15,8 @@ void Tests::testFundamentalFitting() {
 //    detectAndSaveFeatures(getKusvod2Dataset());
 //    exit (0);
 
-    DATASET dataset = DATASET::Kusvod2_SIFT;
-    std::string img_name = "graff";
+    DATASET dataset = DATASET::Adelaidermf_SIFT;
+    std::string img_name = "barrsmith";
     cv::Mat_<float> sorted_points, points;
 
     ImageData gt_data (dataset, img_name);
@@ -54,14 +54,21 @@ void Tests::testFundamentalFitting() {
     model->ResetRandomGenerator(false);
 
     if (model->sampler ==  SAMPLER::Prosac) {
-        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
+//        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
-        test (points, model, img_name, dataset, true, gt_inliers);
+//        test (points, model, img_name, dataset, true, gt_inliers);
 //        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
     }
 
-//     storeResultsFundamental ();
+//    auto t = std::chrono::steady_clock::now();
+//    cv::Mat m = cv::findFundamentalMat(points.colRange(0,2), points.colRange(2,4), cv::RANSAC,
+//                                           model->threshold, model->confidence);
+//    std::cout << (std::chrono::duration_cast<std::chrono::microseconds>
+//            (std::chrono::steady_clock::now() - t).count()) << " time opencv\n";
+
+
+     storeResultsFundamental ();
 }
  
 /*
@@ -69,7 +76,7 @@ void Tests::testFundamentalFitting() {
  */
 
 void storeResultsFundamental () {
-    DATASET dataset = DATASET ::Kusvod2_SIFT; // Homogr, Kusvod2, Adelaidrmf, EVD
+    DATASET dataset = DATASET ::Adelaidermf_SIFT; // Homogr, Kusvod2, Adelaidrmf, EVD
     std::vector<std::string> points_filename = Dataset::getDataset(dataset);
     int num_images = points_filename.size();
     std::cout << "number of images " << num_images << "\n";
@@ -113,6 +120,7 @@ void storeResultsFundamental () {
     long mean_time = 0;
     long mean_error = 0;
     bool sprt = 0;
+    int better_by_err = 0;
 
     for (SAMPLER smplr : samplers) {
         for (auto loc_opt : loc_opts) {
@@ -169,12 +177,26 @@ void storeResultsFundamental () {
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";
 //                std::cout << "- - - - - - - - - - - - - - - - - -\n";
 
-                std::cout << statistical_results->avg_num_lo_iters << " ";
+//                std::cout << statistical_results->avg_num_lo_iters << " ";
+//                std::cout << statistical_results->avg_avg_error << " ";
+//                std::cout << statistical_results->worst_case_error << " ";
+//                std::cout << statistical_results->avg_time_mcs << " ";
+//                std::cout << statistical_results->avg_num_iters << " ";
+//                std::cout << statistical_results->num_fails_50 << "\n";
+
+                std::cout << "Usac (err, time): ";
                 std::cout << statistical_results->avg_avg_error << " ";
-                std::cout << statistical_results->worst_case_error << " ";
-                std::cout << statistical_results->avg_time_mcs << " ";
-                std::cout << statistical_results->avg_num_iters << " ";
-                std::cout << statistical_results->num_fails_50 << "\n";
+//                std::cout << statistical_results->worst_case_error << " ";
+                std::cout << statistical_results->avg_time_mcs << "\n";
+//                std::cout << statistical_results->avg_num_iters << " ";
+//                std::cout << statistical_results->num_fails_50 << "\n";
+                float opencv_avg_err, opencv_avg_time;
+                std::cout << "OpenCV (err, time): ";
+                Tests::testOpenCV (points_imgs[img], model,gt_inliers[img], N_runs, &opencv_avg_err, &opencv_avg_time);
+                std::cout << opencv_avg_err << " " << opencv_avg_time << "\n";
+                if (statistical_results->avg_avg_error < opencv_avg_err) {
+                    better_by_err++;
+                }
 
 //                mean_time += statistical_results->avg_time_mcs;
 //                mean_error += statistical_results->avg_avg_error;
@@ -187,6 +209,7 @@ void storeResultsFundamental () {
 //            results_matlab.close();
         }
     }
+    std::cout << "better by error " << better_by_err << " / " << num_images << "\n";
 
 //    std::cout << "mean time " << (mean_time / num_images) << "\n";
 //    std::cout << "mean error " << (mean_error / num_images) << "\n";

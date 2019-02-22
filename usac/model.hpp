@@ -19,7 +19,7 @@ public:
 
     unsigned int sample_size;
     unsigned int min_iterations = 20;
-    unsigned int max_iterations = 10000;
+    unsigned int max_iterations = 5000;
 	unsigned int k_nearest_neighbors = 5;
 
 	// Local Optimization parameters

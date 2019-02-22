@@ -22,41 +22,49 @@ public:
     }
 
     void generateUniqueRandomSet (int * sample) override {
-        for (unsigned int i = 0; i < subset_size; i++) {
-            sample[i] = generate (generator);
-            for (int j = i - 1; j >= 0; j--) {
-                if (sample[i] == sample[j]) {
-                    i--;
+        int num, j;
+        sample[0] = generate (generator);
+        for (unsigned int i = 1; i < subset_size;) {
+            num = generate (generator);
+            for (j = i - 1; j >= 0; j--) {
+                if (num == sample[j]) {
                     break;
                 }
             }
+            if (j == -1) sample[i++] = num;
         }
     }
 
     void generateUniqueRandomSet (int * sample, unsigned int subset_size, unsigned int max) {
+        assert(subset_size+1 <= max);
         resetGenerator(0, max);
-        for (unsigned int i = 0; i < subset_size; i++) {
-            sample[i] = generate (generator);
-            for (int j = i - 1; j >= 0; j--) {
-                if (sample[i] == sample[j]) {
-                    i--;
+        int num, j;
+        sample[0] = generate (generator);
+        for (unsigned int i = 1; i < subset_size;) {
+            num = generate (generator);
+            for (j = i - 1; j >= 0; j--) {
+                if (num == sample[j]) {
                     break;
                 }
             }
+            if (j == -1) sample[i++] = num;
         }
     }
 
     // closed interval <0; max>
     void generateUniqueRandomSet (int * sample, unsigned int max) {
+        assert(subset_size+1 <= max);
         resetGenerator(0, max);
-        for (unsigned int i = 0; i < subset_size; i++) {
-            sample[i] = generate (generator);
-            for (int j = i - 1; j >= 0; j--) {
-                if (sample[i] == sample[j]) {
-                    i--;
+        int num, j;
+        sample[0] = generate (generator);
+        for (unsigned int i = 1; i < subset_size;) {
+            num = generate (generator);
+            for (j = i - 1; j >= 0; j--) {
+                if (num == sample[j]) {
                     break;
                 }
             }
+            if (j == -1) sample[i++] = num;
         }
     }
 

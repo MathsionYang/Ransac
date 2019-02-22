@@ -1,0 +1,49 @@
+Essential matrix estimation
+100 runs for each pair. Confidence 95%. Threshold 2. Uniform sampling without local optimization.
+
+castle_dense_large_59
+Usac (err, time): 0.326694 3479
+OpenCV (err, time): 1.08731 971.01
+castle_dense_42
+Usac (err, time): 0.428032 15497
+OpenCV (err, time): 4.9212 10141.5
+castle_dense_large_103
+Usac (err, time): 0.312156 22811
+OpenCV (err, time): 3.92517 3133.16
+castle_dense_large_47
+Usac (err, time): 52.2477 100414
+OpenCV (err, time): 46.1062 60741
+herzjesu_dense_large_59
+Usac (err, time): 0.769532 36766
+OpenCV (err, time): 11.1194 23704.2
+fountain_dense_15
+Usac (err, time): 0.42086 19677
+OpenCV (err, time): 18.8616 10790.4
+castle_dense_large_161
+Usac (err, time): 31.2871 1738859
+OpenCV (err, time): 17.9752 293784
+herzjesu_dense_large_51
+Usac (err, time): 1.1663 23178
+OpenCV (err, time): 3.28652 10462.9
+castle_dense_large_33
+Usac (err, time): 17.9226 33524
+OpenCV (err, time): 13.0875 15427.1
+herzjesu_dense_large_74
+Usac (err, time): 0.715981 5009
+OpenCV (err, time): 2.03431 4103.07
+herzjesu_dense_large_132
+Usac (err, time): 0.406578 8711
+OpenCV (err, time): 1.291 3179.84
+castle_dense_51
+Usac (err, time): 0.370624 16294
+OpenCV (err, time): 0.880354 5752.33
+castle_entry_dense_40
+Usac (err, time): 3.1944 88749
+OpenCV (err, time): 4.5228 20843.8
+herzjesu_dense_large_103
+Usac (err, time): 0.636598 10614
+OpenCV (err, time): 1.65058 4208.68
+herzjesu_dense_large_72
+Usac (err, time): 0.603456 6934
+OpenCV (err, time): 1.30837 4397.33
+better by error 12 / 15

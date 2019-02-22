@@ -91,21 +91,37 @@ std::vector<std::string> Dataset::getAdelaidermfDataset () {
     };
 };
 
-std::vector<std::string> Dataset::getStrechaDataset () {
+std::vector<std::string> Dataset::getStrechaDataset (int num_imgs, bool reset_time) {
     std::vector<std::string> fnames;
     std::fstream file ("../../MVS/zdataset.txt");
     if (! file.is_open()) {
         std::cout << "can read images for Strecha dataset!\n";
         exit (0);
     }
+
+
     std::string name;
-    int count = 0;
     while (file >> name) {
         fnames.push_back(name);
-        count++;
-        if (count > 10) break;
     }
-    return fnames;
+    if (num_imgs == 0 || num_imgs >= fnames.size()) return fnames;
+
+    if (reset_time) srand (time(NULL));
+    std::vector<std::string> random_imgs (num_imgs);
+    std::vector<int> used_imgs (num_imgs);
+
+    for (int i = 0; i < num_imgs; i++) {
+        used_imgs[i] = random () % fnames.size();
+        random_imgs[i] = fnames[used_imgs[i]];
+        for (int j = i-1; j >= 0; j--) {
+            if (used_imgs[i] == used_imgs[j]) {
+                i--;
+                break;
+            }
+        }
+    }
+
+    return random_imgs;
 }
 
 //printf "\"%s\",\n" $(ls *.png)
