@@ -7,7 +7,7 @@
 
 #include "../dataset/Dataset.h"
 
-enum ESTIMATOR  { Line2d, Homography, Fundamental, Essential };
+enum ESTIMATOR  { Line2d, Homography, Fundamental, Essential, Affine };
 enum SAMPLER  { Uniform, ProgressiveNAPSAC, Napsac, Prosac, Evsac, ProsacNapsac };
 enum NeighborsSearch {NullN, Nanoflann, Grid};
 enum LocOpt {NullLO, InItLORsc, InItFLORsc, GC, IRLS};
@@ -63,6 +63,7 @@ public:
 		else if (estimator_ == ESTIMATOR::Essential) sample_size = 5;
 		else if (estimator_ == ESTIMATOR::Fundamental) sample_size = 7;
 		else if (estimator_ == ESTIMATOR::Homography) sample_size = 4;
+		else if (estimator_ == ESTIMATOR::Affine) sample_size = 3;
 		else {
 			std::cout << "unexpected estimator!\n";
 			exit (1);

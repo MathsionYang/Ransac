@@ -13,6 +13,9 @@ void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points
     } else if (est == ESTIMATOR::Essential) {
 	    estimator = new EssentialEstimator(points);
 
+    } else if (est == ESTIMATOR::Affine) {
+        estimator = new AffineEstimator(points);
+    
     } else {
         std::cout << "UNKOWN Estimator IN Init Estimator\n";
         exit (111);

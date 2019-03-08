@@ -46,6 +46,14 @@ void splitFilename (const std::string &filename, std::string &path, std::string 
     ext = filename.substr(dot+1, filename.length()-1);
 }
 
+void solveLSQWithQR (cv::Mat& x, const cv::Mat& A, const cv::Mat& b) {
+    // todo
+    // solves Ax = b, A = QR
+    // QRx = b |*Q' -> Rx = Q'b -> x = inv(R)*Q'b, R is upper triangular,
+    // with back substitution will be fast. 
+}
+
+
 void swap(int* a, int* b) {
     int t = *a;
     *a = *b;

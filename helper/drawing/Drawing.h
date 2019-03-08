@@ -19,6 +19,8 @@ public:
         } else if (model->estimator == ESTIMATOR::Homography) {
             drawHomography(model, dataset, img_name);
 
+        } else if (model->estimator ==  ESTIMATOR::Affine) {
+            drawAffine (model, dataset, img_name);
         }
     }
     /*
@@ -148,6 +150,56 @@ public:
      */
     static void drawEpipolarLines (Model * model, DATASET dataset, const std::string& img_name);
 
+    static void drawAffine (Model * model, DATASET dataset, const std::string& img_name) {
+        ImageData gt_data (dataset, img_name);
+
+        cv::Mat points1 = gt_data.getPoints1();
+        cv::Mat points2 = gt_data.getPoints2();
+        
+        cv::Mat Aff = model->returnDescriptor();
+        cv::Mat A = (cv::Mat_<float>(2,2) << Aff.at<float>(0), Aff.at<float>(1), Aff.at<float>(3), Aff.at<float>(4));
+        cv::Mat t = (cv::Mat_<float>(2,1) << Aff.at<float>(2), Aff.at<float>(5));
+        
+        /*
+            |x'| = |a b| * |x| + |c|  
+            |y'|   |d e|   |y|   |f|
+            
+            |x| = |a b|-1 * (|x'| - |c|)  
+            |y|   |d e|     (|y'|   |f|)
+        */
+
+        cv::Mat est_pts_on_corr2 = A * points1.t() + t * cv::Mat_<float>::ones(1, points1.rows);
+        cv::Mat est_pts_on_corr1 = A.inv() * (points2.t() - t * cv::Mat_<float>::ones(1, points1.rows));
+        cv::Mat img1 = gt_data.getImage1();
+        cv::Mat img2 = gt_data.getImage2();
+        
+        for (int i = 0; i < points1.rows; i++) {
+            float x = points2.at<float>(i, 0);
+            float y = points2.at<float>(i, 1);
+            float estx = est_pts_on_corr2.at<float>(0, i);
+            float esty = est_pts_on_corr2.at<float>(1, i);
+            if (sqrt((x-estx)*(x-estx) + (y-esty)*(y-esty)) > model->threshold) {
+                // continue;
+            }
+            cv::Scalar color = cv::Scalar(random()%255, random ()%255, random()%255);
+
+            cv::line(img1, cv::Point_<float> (points1.at<float>(i, 0), points1.at<float>(i, 1)),
+                                 cv::Point_<float> (est_pts_on_corr1.at<float>(0, i), est_pts_on_corr1.at<float>(1, i)), color, 2);
+
+            cv::line(img2, cv::Point_<float> (points2.at<float>(i, 0), points2.at<float>(i, 1)),
+                                 cv::Point_<float> (est_pts_on_corr2.at<float>(0, i), est_pts_on_corr2.at<float>(1, i)), color, 2);
+
+            cv::circle (img1, cv::Point_<float>(points1.at<float>(i, 0), points1.at<float>(i, 1)), 3, cv::Scalar(0, 255, 0), -1);
+            cv::circle (img2, cv::Point_<float>(points2.at<float>(i, 0), points2.at<float>(i, 1)), 3, cv::Scalar(0, 255, 0), -1);
+
+            cv::circle (img1, cv::Point_<float>(est_pts_on_corr1.at<float>(0, i), est_pts_on_corr1.at<float>(1, i)), 3, cv::Scalar(0, 0, 255), -1);
+            cv::circle (img2, cv::Point_<float>(est_pts_on_corr2.at<float>(0, i), est_pts_on_corr2.at<float>(1, i)), 3, cv::Scalar(0, 0, 255), -1);
+        }
+        cv::hconcat(img1, img2, img1);
+        drawing_resize(img1);
+        cv::imshow("Affine transformation ", img1);
+        cv::waitKey(0);
+    } 
 
     static void drawHomography (Model *model, DATASET dataset, const std::string& img_name) {
         ImageData gt_data (dataset, img_name);

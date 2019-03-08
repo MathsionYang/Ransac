@@ -13,6 +13,6 @@ void splitFilename (const std::string &filename, std::string &path, std::string 
 int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsigned int right);
 int findMedian (int * array, unsigned int length);
 
-
+void solveLSQWithQR (cv::Mat& x, const cv::Mat& A, const cv::Mat& b);
 
 #endif //USAC_UTILS_H

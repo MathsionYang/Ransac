@@ -9,6 +9,7 @@
 #include "../estimator/homography_estimator.hpp"
 #include "../estimator/essential_estimator.hpp"
 #include "../estimator/fundamental_estimator.hpp"
+#include "../estimator/affine_estimator.hpp"
 
 #include "../sampler/prosac_sampler.hpp"
 #include "../sampler/napsac_sampler.hpp"

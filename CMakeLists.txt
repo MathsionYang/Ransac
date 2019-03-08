@@ -42,7 +42,8 @@ add_executable(
         usac/estimator/homography_estimator.hpp
         usac/estimator/essential_estimator.hpp
         usac/estimator/fundamental_estimator.hpp
-
+        usac/estimator/affine_estimator.hpp
+        
         usac/estimator/dlt/dlt.hpp usac/estimator/dlt/dlt.cpp
         usac/estimator/dlt/normalized_dlt.cpp
         usac/estimator/dlt/normalizing_transformation.cpp
@@ -73,6 +74,7 @@ add_executable(
         test/test_line2d_fitting.cpp
         test/test_essential_fitting.cpp
         test/test_fundamental_fitting.cpp
+        test/test_affine_fitting.cpp
         test/test.cpp
         test/statistical_results.h
         test/test_neighbors_search.cpp

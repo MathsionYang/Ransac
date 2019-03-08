@@ -58,19 +58,19 @@ void Ransac::run() {
 //    long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0;
 
     while (iters < max_iters) {
-//        std::cout << "generate sample\n";
+       // std::cout << "generate sample\n";
 //        auto t = std::chrono::steady_clock::now();
         sampler->generateSample(sample);
 //        sampling_time+=std::chrono::duration_cast<std::chrono::microseconds>
 //                (std::chrono::steady_clock::now() - t).count();
 
-//           std::cout << "samples are generated\n";
+          // std::cout << "samples are generated\n";
 //        auto t2 = std::chrono::steady_clock::now();
         number_of_models = estimator->EstimateModel(sample, models);
 //        min_estimation_time += std::chrono::duration_cast<std::chrono::microseconds>
 //                (std::chrono::steady_clock::now() - t2).count();
 
-//         std::cout << "minimal model estimated\n";
+        // std::cout << "minimal model estimated\n";
 
         for (unsigned int i = 0; i < number_of_models; i++) {
 //             std::cout << i << "-th model\n";
@@ -108,7 +108,7 @@ void Ransac::run() {
 //                        (std::chrono::steady_clock::now() - t).count();
             }
 //
-//           std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
+          // std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
 //            std::cout << models[i]->returnDescriptor() << "\n\n";
 
             if (current_score->bigger(best_score)) {
@@ -167,7 +167,7 @@ void Ransac::run() {
 
     Model *non_minimal_model = new Model (model);
 
-//    std::cout << "end best inl num " << best_score->inlier_number << '\n';
+   std::cout << "end best inl num " << best_score->inlier_number << '\n';
 
     unsigned int previous_non_minimal_num_inlier = 0;
 
@@ -197,7 +197,7 @@ void Ransac::run() {
 //        std::cout << "end get non minimal score\n";
 
         // Priority is for non minimal model estimation
-//        std::cout << "non minimal score " << current_score->inlier_number << '\n';
+       std::cout << "non minimal score " << current_score->inlier_number << '\n';
 
         // break if non minimal model score is less than 80% of the best minimal model score
         if ((float) current_score->inlier_number / best_score->inlier_number < 0.8) {

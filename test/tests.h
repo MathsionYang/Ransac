@@ -22,7 +22,8 @@ public:
     static void testHomographyFitting ();
     static void testFundamentalFitting ();
     static void testEssentialFitting ();
-
+    static void testAffineFitting ();
+    
     static void testNeighborsSearchCell ();
     static void testNeighborsSearch ();
     static void testFindMedian ();

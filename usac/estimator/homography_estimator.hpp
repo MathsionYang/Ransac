@@ -80,7 +80,7 @@ public:
         return EstimateModelNonMinimalSample(sample, sample_size, model);
     }
     /*
-     * Error = mean (distance (pt(i)H, pt'(i)) + distance (pt(i), pt'(i)H^-1))
+     * Error = mean (distance (H pt(i), pt'(i)) + distance (pt(i), H^-1 pt'(i)))
      */
     float GetError(unsigned int pidx) override {
         unsigned int smpl = 4*pidx;
