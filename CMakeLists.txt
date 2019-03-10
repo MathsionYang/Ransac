@@ -116,9 +116,9 @@ target_link_libraries (ransac ${OpenCV_LIBS} )
 #target_link_libraries (ransac ${THEIA_LIBRARIES})
 
 # Nanoflann
-find_package(nanoflann)
-target_link_libraries(ransac nanoflann::nanoflann)
+# find_package(nanoflann)
+# target_link_libraries(ransac nanoflann::nanoflann)
 
 # Eigen
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-target_link_libraries (ransac Eigen3::Eigen)
+# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+# target_link_libraries (ransac Eigen3::Eigen)
