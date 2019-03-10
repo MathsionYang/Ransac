@@ -1,6 +1,3 @@
-#ifndef USAC_TEST_UTILS_CPP_H
-#define USAC_TEST_UTILS_CPP_H
-
 #include "test_precomp.hpp"
 #include "../usac/utils/utils.hpp"
 #include "tests.h"
@@ -159,6 +156,3 @@ void Tests::testInv () {
 
     std::cout << A_inv << "\n";
 }
-
-
-#endif //USAC_TEST_UTILS_CPP_H

@@ -167,7 +167,7 @@ void Ransac::run() {
 
     Model *non_minimal_model = new Model (model);
 
-   std::cout << "end best inl num " << best_score->inlier_number << '\n';
+   // std::cout << "end best inl num " << best_score->inlier_number << '\n';
 
     unsigned int previous_non_minimal_num_inlier = 0;
 
@@ -197,7 +197,7 @@ void Ransac::run() {
 //        std::cout << "end get non minimal score\n";
 
         // Priority is for non minimal model estimation
-       std::cout << "non minimal score " << current_score->inlier_number << '\n';
+       // std::cout << "non minimal score " << current_score->inlier_number << '\n';
 
         // break if non minimal model score is less than 80% of the best minimal model score
         if ((float) current_score->inlier_number / best_score->inlier_number < 0.8) {

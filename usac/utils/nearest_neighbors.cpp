@@ -75,17 +75,8 @@ void NearestNeighbors::getNearestNeighbors_nanoflann (const cv::Mat& points, int
     std::vector<std::vector<float>> samples (points_size, std::vector<float>(dim));
     
     for (unsigned int p = 0; p < points_size; p++) {
-        // samples[p].assign ((float*)points.row(p).datastart, (float*)points.row(p).dataend);
         points.row(p).copyTo(samples[p]);
     }
-
-    // std::cout << "assigned\n";
-    // for (int i = 0; i < points_size; i++) {
-    //     for (int j = 0; j < dim; j++) {
-    //         std::cout << samples[i][j] << " ";
-    //     }
-    //     std::cout << '\n';
-    // }
 
     // construct a kd-tree index:
     // Dimensionality set at run-time (default: L2)
@@ -133,42 +124,6 @@ void NearestNeighbors::getNearestNeighbors_nanoflann (const cv::Mat& points, int
 
     delete[] ret_indexes;
     delete[] out_dists_sqr;
-
-
-    // typedef KDTreeVectorOfVectorsAdaptor< std::vector<std::vector<NUM> >, NUM >  my_kd_tree_t;
-
-    // my_kd_tree_t   mat_index(DIM /*dim*/, samples, 10 /* max leaf */ );
-    // mat_index.index->buildIndex();
-
-    // std::vector<float> query_pt(dim);
-
-    // // do a knn search
-    // const size_t num_results = 1;
-    // std::vector<size_t>   ret_indexes(num_results);
-    // std::vector<float> out_dists_sqr(num_results);
-
-    // nanoflann::KNNResultSet<float> resultSet(num_results);
-
-    // resultSet.init(&ret_indexes[0], &out_dists_sqr[0] );
-    // mat_index.index->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10) );
-
-    // // Brute force:
-    // double min_dist_L2 = std::numeric_limits<double>::max();
-    // size_t min_idx = std::numeric_limits<size_t>::max();
-    // {
-    //     for (size_t i=0;i<nSamples;i++)
-    //     {
-    //         double dist=0.0;
-    //         for (size_t d=0;d<dim;d++)
-    //             dist+= (query_pt[d]-samples[i][d])*(query_pt[d]-samples[i][d]);
-    //         if (dist<min_dist_L2)
-    //         {
-    //             min_dist_L2=dist;
-    //             min_idx = i;
-    //         }
-    //     }
-    // }
-
 }
 
 /*

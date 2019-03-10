@@ -2,7 +2,7 @@ RAM 15.6 GB
 Intel Core i7
 OS type 64 bit
 8 CPUs
-uniform_essential
+uniform_homography
 Runs for each image = 100
 Threshold for each image = 2
 Desired probability for each image = 0.95

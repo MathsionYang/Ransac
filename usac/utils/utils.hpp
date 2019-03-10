@@ -7,7 +7,10 @@
 
 #include "../precomp.hpp"
 
-void densitySort (const cv::Mat &points, int max_neighbor, cv::Mat &sorted_points);
+void densitySort (const cv::Mat &points, unsigned int max_neighbor, cv::Mat &sorted_points);
+void densitySort (const cv::Mat &points, unsigned int knn, cv::Mat &sorted_points, 
+                 const std::vector<int> &inliers, std::vector<int> &sorted_inliers);
+
 void splitFilename (const std::string &filename, std::string &path, std::string &name, std::string &ext);
 
 int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsigned int right);

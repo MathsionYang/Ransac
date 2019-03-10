@@ -5,7 +5,7 @@
 #include "utils.hpp"
 #include "nearest_neighbors.hpp"
 
-void densitySort (const cv::Mat &points, int knn, cv::Mat &sorted_points) {
+void densitySort (const cv::Mat &points, unsigned int knn, cv::Mat &sorted_points) {
     // get neighbors
     cv::Mat neighbors, neighbors_dists;
     NearestNeighbors::getNearestNeighbors_nanoflann(points, knn, neighbors, true, neighbors_dists);
@@ -30,6 +30,41 @@ void densitySort (const cv::Mat &points, int knn, cv::Mat &sorted_points) {
         sorted_points.push_back(points.row(sorted_idx[i]));
     }
 }
+
+void densitySort (const cv::Mat &points, unsigned int knn, cv::Mat &sorted_points, 
+                 const std::vector<int> &inliers, std::vector<int> &sorted_inliers) {
+    // get neighbors
+    cv::Mat neighbors, neighbors_dists;
+    NearestNeighbors::getNearestNeighbors_nanoflann(points, knn, neighbors, true, neighbors_dists);
+    //
+
+    std::vector<int> sorted_idx(points.rows);
+    std::iota(sorted_idx.begin(), sorted_idx.end(), 0);
+    float sum1, sum2;
+    int idxa, idxb;
+    float *neighbors_dists_ptr = (float *) neighbors_dists.data;
+    std::sort(sorted_idx.begin(), sorted_idx.end(), [&](int a, int b) {
+        sum1 = 0, sum2 = 0;
+        idxa = knn * a, idxb = knn * b;
+        for (int i = 0; i < knn; i++) {
+            sum1 += neighbors_dists_ptr[idxa + i];
+            sum2 += neighbors_dists_ptr[idxb + i];
+        }
+        return sum1 < sum2;
+    });
+
+    sorted_inliers.clear();
+    sorted_inliers.reserve(inliers.size());
+    
+    for (int i = 0; i < points.rows; i++) {
+        sorted_points.push_back(points.row(sorted_idx[i]));
+    
+        if (std::find(inliers.begin(), inliers.end(), sorted_idx[i]) != inliers.end()) {
+            sorted_inliers.push_back(i);
+        }
+    }
+}
+
 
 /*
  * filename = path/name.ext

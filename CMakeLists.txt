@@ -80,7 +80,8 @@ add_executable(
         test/test_neighbors_search.cpp
         test/test_precomp.hpp
         test/test_utils.cpp
-
+        test/test_density_prosac.cpp
+        
         helper/Logging.h
         helper/drawing/Drawing.h
         helper/drawing/DrawPanorama.cpp

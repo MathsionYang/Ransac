@@ -14,11 +14,10 @@ int main (int args, char ** argv) {
 
 //     run tests
 //     Tests::testLineFitting();
-//     Tests::testHomographyFitting();
-//     Tests::testFundamentalFitting();
+    Tests::testHomographyFitting();
+    // Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
      // Tests::testAffineFitting();
 
-	Tests::testFindNearestNeighbors();
 	return 0;
 }

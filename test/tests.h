@@ -29,13 +29,14 @@ public:
     static void testFindMedian ();
     static void testFindNearestNeighbors (int knn=7);
     static void testInv ();
-
-        static void test (cv::Mat points,
-                      Model * model,
-                      const std::string &img_name,
-                      DATASET dataset,
-                      bool gt,
-                      const std::vector<int>& gt_inliers);
+    static void testDensityProsac ();
+        
+    static void test (cv::Mat points,
+                  Model * model,
+                  const std::string &img_name,
+                  DATASET dataset,
+                  bool gt,
+                  const std::vector<int>& gt_inliers);
 
 
     static void detectAndSaveFeatures (const std::vector<std::string>& dataset) {

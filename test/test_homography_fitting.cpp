@@ -115,7 +115,7 @@ void storeResultsHomography () {
 //    samplers.push_back(SAMPLER::Prosac);
 
     std::vector<LocOpt > loc_opts;
-    loc_opts.push_back(LocOpt::NullLO);
+    loc_opts.push_back(LocOpt::InItFLORsc);
     bool sprt = 0;
 
     NeighborsSearch neighborsSearch = NeighborsSearch ::Grid;
@@ -123,7 +123,8 @@ void storeResultsHomography () {
 
     long mean_time = 0;
     long mean_error = 0;
-    int better_by_err = 0;
+
+    int better_by_err = 0, better_by_time = 0;
 
     for (SAMPLER smplr : samplers) {
         for (auto loc_opt : loc_opts) {
@@ -187,6 +188,10 @@ void storeResultsHomography () {
                 if (statistical_results->avg_avg_error < opencv_avg_err) {
                     better_by_err++;
                 }
+                if (statistical_results->avg_time_mcs < opencv_avg_time) {
+                    better_by_time++;
+                }
+                
 //                std::cout << " +- " << statistical_results->std_dev_avg_error << "\n";
 //                std::cout << "- - - - - - - - - - - - - - - - - -\n";
 
@@ -202,6 +207,7 @@ void storeResultsHomography () {
         }
     }
     std::cout << "better by error " << better_by_err << " / " << num_images << "\n";
+    std::cout << "better by time " << better_by_time << " / " << num_images << "\n";
 //    std::cout << "mean time " << (mean_time / num_images) << "\n";
 //    std::cout << "mean error " << (mean_error / num_images) << "\n";
 

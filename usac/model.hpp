@@ -26,7 +26,7 @@ public:
 	LocOpt lo = NullLO;
     unsigned int lo_sample_size = 14;
 	unsigned int lo_iterative_iterations = 4;
-    unsigned int lo_inner_iterations = 20; // 10
+    unsigned int lo_inner_iterations = 10; // 10
     unsigned int lo_threshold_multiplier = 10;
 
     // Graph cut
@@ -100,7 +100,7 @@ public:
 
     void setDescriptor(cv::Mat desc) {
 //    	descriptor = desc;
-        descriptor = desc.clone();
+        desc.copyTo(descriptor);
     }
 
     cv::Mat returnDescriptor () {
