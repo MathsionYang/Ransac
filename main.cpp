@@ -17,6 +17,8 @@ int main (int args, char ** argv) {
 //     Tests::testHomographyFitting();
 //     Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
-     Tests::testAffineFitting();
+     // Tests::testAffineFitting();
+
+	Tests::testFindNearestNeighbors();
 	return 0;
 }

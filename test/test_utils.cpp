@@ -56,7 +56,7 @@ void Tests::testFindNearestNeighbors (int knn) {
     std::clock_t start;
     double duration;
 
-    std::string img_name = "Brussels";
+    std::string img_name = "adam";
     cv::Mat points, points1, points2;
     Reader::read_points (points1, points2, "../dataset/homography/"+img_name+"_pts.txt");
     cv::hconcat(points1, points2, points);
@@ -107,6 +107,7 @@ void Tests::testFindNearestNeighbors (int knn) {
     NearestNeighbors::getNearestNeighbors_nanoflann(points, knn, nearest_neighbors_nanoflann, false, neighbors_distances);
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     std::cout << "duration nanoflann: "<< duration <<'\n';
+
 //    std::cout << nearest_neighbors_nanoflann << "\n";
     // points size 3300
     // flann 0.33 mcs
