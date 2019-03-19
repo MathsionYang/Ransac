@@ -55,7 +55,7 @@ void Ransac::run() {
     unsigned int iters = 0;
     unsigned int max_iters = model->max_iterations;
 
-//    long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0;
+   // long sampling_time = 0, min_estimation_time = 0, eval_time = 0, non_min_est_time = 0, loc_opt_time = 0;
 
     while (iters < max_iters) {
        // std::cout << "generate sample\n";
@@ -118,9 +118,12 @@ void Ransac::run() {
                 // update current model and current score by inner and iterative local optimization
                 // if inlier number is too small, do not update
 
+                // auto t3 = std::chrono::steady_clock::now();/
                 if (LO) {
                     local_optimization->GetModelScore (models[i], current_score);
                 }
+                // loc_opt_time += std::chrono::duration_cast<std::chrono::microseconds>
+                //         (std::chrono::steady_clock::now() - t3).count();
 
                 // copy current score to best score
                 best_score->copyFrom(current_score);
@@ -187,7 +190,7 @@ void Ransac::run() {
         // estimate non minimal model with max inliers
 
         if (! estimator->EstimateModelNonMinimalSample(max_inliers, best_score->inlier_number, *non_minimal_model)) {
-            std::cout << "\033[1;31mNON minimal model 2 completely failed!\033[0m \n";
+            std::cout << "\033[1;31mNON minimal model completely failed!\033[0m \n";
             break;
         }
 
@@ -224,6 +227,7 @@ void Ransac::run() {
 //    std::cout << "evaluation time " << eval_time << "\n";
 //    std::cout << "minimal estimation time " << min_estimation_time << "\n";
 //    std::cout << "non minimal estimation time " << non_min_est_time << "\n";
+//    std::cout << "local optimization time " << loc_opt_time << "\n";
 
     std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
     // ================= here is ending ransac main implementation ===========================

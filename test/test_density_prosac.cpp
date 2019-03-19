@@ -31,12 +31,15 @@ void Tests::testDensityProsac () {
         std::vector<int> gt_inliers_ = gt_data.getGTInliers(threshold);
         std::vector<int> dense_inliers;
 
-        auto begin_time = std::chrono::steady_clock::now();
+        // auto begin_time = std::chrono::steady_clock::now();
         densitySort (points, 10, dense_sorted_points, gt_inliers_, dense_inliers);
-        std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
-        dense_sorting_time.push_back(std::chrono::duration_cast<std::chrono::microseconds>(fs).count());
+        // std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
+        // dense_sorting_time.push_back(std::chrono::duration_cast<std::chrono::microseconds>(fs).count());
 
-        sift_sorted_points.push_back(gt_data.getGTInliersSorted(threshold));
+        sift_sorted_points_imgs.emplace_back (sift_sorted_points);
+        dense_sorted_points_imgs.emplace_back (dense_sorted_points);
+
+        sift_sorted_gt_inliers.push_back(gt_data.getGTInliersSorted(threshold));
         dense_sorted_gt_inliers.push_back(dense_inliers);
 
         std::cout << "inliers size " << gt_inliers_.size() << "\n";
@@ -62,16 +65,17 @@ void Tests::testDensityProsac () {
                                         true, sift_sorted_gt_inliers[img], true, statistical_results);
 
         float avg_avg_error = statistical_results->avg_avg_error;
-        float avg_time = statistical_results->avg_avg_error;
+        float avg_time = statistical_results->avg_time_mcs;
     	std::cout << avg_time << " " << avg_avg_error << "\n";    
         avg_avg_avg_error += avg_avg_error;
         avg_avg_time += avg_time;
 
         img++;
     }
-    std::cout << "Average avg. time & Average avg. avg. error:\n";
+    std::cout << "SIFT Average avg. time & Average avg. avg. error:\n";
     std::cout << (avg_avg_time / num_images) << " " << (avg_avg_avg_error / num_images) << "\n";
 
+    img = 0;
     avg_avg_avg_error = 0; avg_avg_time = 0;
     for (const std::string &img_name : points_filename) {
         StatisticalResults * statistical_results = new StatisticalResults;
@@ -79,13 +83,13 @@ void Tests::testDensityProsac () {
                                         true, dense_sorted_gt_inliers[img], true, statistical_results);
 
         float avg_avg_error = statistical_results->avg_avg_error;
-        float avg_time = statistical_results->avg_avg_error;
-    	std::cout << avg_time << " " << avg_avg_error << "\n";    
+        float avg_time = statistical_results->avg_time_mcs;
+    	std::cout << avg_time << " " << avg_time << "\n";    
         avg_avg_avg_error += avg_avg_error;
         avg_avg_time += avg_time;
 
         img++;
     }
-    std::cout << "Average avg. time & Average avg. avg. error:\n";
+    std::cout << "DENSE Average avg. time & Average avg. avg. error:\n";
     std::cout << (avg_avg_time / num_images) << " " << (avg_avg_avg_error / num_images) << "\n";
 }

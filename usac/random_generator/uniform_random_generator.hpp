@@ -26,17 +26,20 @@ public:
         sample[0] = generate (generator);
         for (unsigned int i = 1; i < subset_size;) {
             num = generate (generator);
+            // check if value is in array
             for (j = i - 1; j >= 0; j--) {
                 if (num == sample[j]) {
+                    // if so, generate again
                     break;
                 }
             }
+            // success, value is not in array, so it is unique, add to sample.
             if (j == -1) sample[i++] = num;
         }
     }
 
     void generateUniqueRandomSet (int * sample, unsigned int subset_size, unsigned int max) {
-        assert(subset_size+1 <= max);
+        assert(subset_size <= max+1);
         resetGenerator(0, max);
         int num, j;
         sample[0] = generate (generator);
@@ -53,7 +56,7 @@ public:
 
     // closed interval <0; max>
     void generateUniqueRandomSet (int * sample, unsigned int max) {
-        assert(subset_size+1 <= max);
+        assert(subset_size <= max+1);
         resetGenerator(0, max);
         int num, j;
         sample[0] = generate (generator);

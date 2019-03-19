@@ -3,8 +3,8 @@
 #include "../dataset/GetImage.h"
 
 void Tests::testNeighborsSearchCell () {
-//    std::vector<std::string> points_filename = Dataset::getHomographyDatasetPoints();
-    std::vector<std::string> points_filename = Dataset::getAdelaidermfDataset();
+    DATASET dataset = DATASET::Adelaidermf;
+    std::vector<std::string> points_filename = Dataset::getDataset(dataset);
 
     int num_images = points_filename.size();
 
@@ -20,8 +20,7 @@ void Tests::testNeighborsSearchCell () {
         std::cout << "get points for " << img_name << "\n";
         cv::Mat_<float> points;
 
-//        ImageData gt_data (DATASET::Homogr, img_name);
-        ImageData gt_data (DATASET::Adelaidermf, img_name);
+        ImageData gt_data (dataset, img_name);
         points = gt_data.getPoints();
 
         gt_inliers.push_back(gt_data.getGTInliers(threshold));
@@ -30,9 +29,9 @@ void Tests::testNeighborsSearchCell () {
     }
 
     std::cout << N_runs <<" for each " << num_images  << "\n";
-    std::cout << "cell size | total avg time | total avg error | total avg num inliers\n";
+    std::cout << "cell size | total avg time | total avg error\n";
 
-    for (int cell_size = 25; cell_size <= 100; cell_size += 5) {
+    for (int cell_size = 20; cell_size <= 100; cell_size += 1) {
 //        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
         Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         model->lo = LocOpt ::GC;
@@ -41,9 +40,7 @@ void Tests::testNeighborsSearchCell () {
         model->ResetRandomGenerator(true);
 
         int img = 0;
-        float avg_error = 0;
-        float avg_num_inliers = 0;
-        long avg_time = 0;
+        float avg_error = 0, avg_time = 0;
 
         for (const std::string &img_name : points_filename) {
 
@@ -54,12 +51,11 @@ void Tests::testNeighborsSearchCell () {
                                             true, gt_inliers[img], true, statistical_results);
 
             avg_error += statistical_results->avg_avg_error;
-            avg_num_inliers += statistical_results->avg_num_inliers;
             avg_time += statistical_results->avg_time_mcs;
 
             img++;
         }
-        std::cout << cell_size << " " <<  (avg_time / num_images) << " " << (avg_error / num_images) << " " << (avg_num_inliers / num_images) << "\n";
+        std::cout << cell_size << " " <<  (avg_time / num_images) << " " << (avg_error / num_images) << "\n";
     }
 }
 

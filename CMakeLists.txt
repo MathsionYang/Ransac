@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 set (CMAKE_CXX_STANDARD 11)
+# comment or change
+SET(OpenCV_DIR /home/miv1774/opencv-3.4.0/build/lib)
 
 project (usac)
 find_package (OpenCV REQUIRED)
@@ -107,7 +109,7 @@ add_executable(
 # warnings
 # set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra" )
 # optimalization
-# set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3" )
 
 target_link_libraries (ransac ${OpenCV_LIBS} )
 
