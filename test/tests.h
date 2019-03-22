@@ -30,7 +30,8 @@ public:
     static void testFindNearestNeighbors (int knn=7);
     static void testInv ();
     static void testDensityProsac ();
-        
+    static void testDensityOptimalKnn();
+    
     static void test (cv::Mat points,
                   Model * model,
                   const std::string &img_name,

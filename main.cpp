@@ -18,7 +18,9 @@ int main (int args, char ** argv) {
     // Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
      // Tests::testAffineFitting();
-	Tests::testDensityProsac();
+	// Tests::testDensityProsac();
+	Tests::testDensityOptimalKnn();
 	// Tests::testNeighborsSearchCell();
+	
 	return 0;
 }
