@@ -13,6 +13,7 @@ private:
     const float * const points;
     float h11, h12, h13, h21, h22, h23, h31, h32, h33;
     DLt * dlt;
+    unsigned int points_size;
 public:
     ~HomographyEstimator () {
         delete (dlt);
@@ -27,6 +28,7 @@ public:
     HomographyEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data) {
         assert(!input_points.empty());
         dlt = new DLt(points);
+        points_size = input_points.getMat().rows;
     }
 
     void setModelParameters (const cv::Mat& model) override {
@@ -92,6 +94,31 @@ public:
         // error >= 0
         return error;
     }
+
+    float GetTotalError (float threshold, bool get_inliers, int * inliers) override {
+        float x1, y1, x2, y2, est_x2, est_y2, est_z2, error = 0;
+        unsigned int smpl;
+
+        for (unsigned int pt = 0; pt < points_size; pt++) {
+            smpl = 4*pt;
+            x1 = points[smpl];
+            y1 = points[smpl+1];
+            x2 = points[smpl+2];
+            y2 = points[smpl+3];
+
+            est_x2 = h11 * x1 + h12 * y1 + h13;
+            est_y2 = h21 * x1 + h22 * y1 + h23;
+            est_z2 = h31 * x1 + h32 * y1 + h33; // h33 = 1
+
+            est_x2 /= est_z2;
+            est_y2 /= est_z2;
+            
+            error += sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
+        }
+
+        return error;
+    }
+
 
     int SampleNumber() override {
         return 4;

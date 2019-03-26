@@ -38,7 +38,6 @@ void Ransac::run() {
     /*
      * Allocate inliers of points_size, to avoid reallocation in getModelScore()
      */
-    int * inliers = new int[points_size];
     int sample [estimator->SampleNumber()];
 
     // prosac
@@ -243,7 +242,6 @@ void Ransac::run() {
             std::chrono::duration_cast<std::chrono::microseconds>(fs).count(),
                                       best_score->inlier_number, iters, num_lo_iters);
 
-    delete[] inliers;
     delete[] max_inliers;
     delete (current_score);
     delete (best_score);
