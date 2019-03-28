@@ -95,10 +95,10 @@ public:
         return error;
     }
 
-    float GetTotalError (float threshold, bool get_inliers, int * inliers) override {
-        float x1, y1, x2, y2, est_x2, est_y2, est_z2, error = 0;
+    int GetNumInliers (float threshold, bool get_inliers, int * inliers) override {
+        float x1, y1, x2, y2, est_x2, est_y2, est_z2, error;
         unsigned int smpl;
-
+        int num_inliers = 0;
         for (unsigned int pt = 0; pt < points_size; pt++) {
             smpl = 4*pt;
             x1 = points[smpl];
@@ -113,10 +113,16 @@ public:
             est_x2 /= est_z2;
             est_y2 /= est_z2;
             
-            error += sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
+            error = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
+            if (error < threshold) {
+                if (get_inliers)
+                    inliers[num_inliers++] = pt;
+                else
+                    num_inliers++;
+            }
         }
 
-        return error;
+        return num_inliers;
     }
 
 

@@ -76,6 +76,7 @@ public:
                }
            }
         } else {
+//            inlier_number = estimator->GetNumInliers(threshold, get_inliers, inliers);
             float err;
             if (get_inliers) {
                 for (unsigned int point = 0; point < points_size; point++) {
@@ -83,7 +84,7 @@ public:
                     if (err < threshold) {
                         inliers[inlier_number++] = point;
                         sum_errors += err;
-                    }    
+                    }
                 }
             } else {
                 for (unsigned int point = 0; point < points_size; point++) {

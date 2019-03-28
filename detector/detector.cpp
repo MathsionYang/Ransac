@@ -6,6 +6,7 @@
 #include "../usac/utils/utils.hpp"
 #include "../usac/estimator/essential_estimator.hpp"
 #include "../usac/quality/quality.hpp"
+// https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_matcher/py_matcher.html
 
 void DetectFeatures(const std::string &name, const cv::Mat &image1, const cv::Mat &image2, cv::Mat &points)
 {
@@ -33,6 +34,8 @@ void DetectFeatures(const std::string &name, const cv::Mat &image1, const cv::Ma
 
     std::vector<std::vector< cv::DMatch >> matches_vector;
     cv::FlannBasedMatcher matcher(new cv::flann::KDTreeIndexParams(5), new cv::flann::SearchParams(32));
+    // get k=2 best match that we can apply ratio test explained by D.Lowe
+    // https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf, page=20
     matcher.knnMatch(descriptors1, descriptors2, matches_vector, 2);
 
     std::vector<cv::Point2f> src_points, dst_points;
@@ -44,6 +47,7 @@ void DetectFeatures(const std::string &name, const cv::Mat &image1, const cv::Ma
 
     for (auto m : matches_vector)
     {
+        // best and second match
         if (m.size() == 2 && m[0].distance < m[1].distance * 0.7) // 0.8
         {
             auto& kp1 = keypoints1[m[0].queryIdx];
