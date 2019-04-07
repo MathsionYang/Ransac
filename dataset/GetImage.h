@@ -248,14 +248,13 @@ public:
 
     // get GT inliers using GT Model
     void getGTInliersFromGTModelHomography (float threshold, bool sorted) {
-        Estimator * estimator;
         std::vector<int> inliers2;
 
         if (! sorted) {
-            estimator = new HomographyEstimator(pts);
+            HomographyEstimator estimator (pts);
 
-            Quality::getInliers(estimator, model, threshold, pts.rows, inliers);
-            Quality::getInliers(estimator, model.inv(), threshold, pts.rows, inliers2);
+            Quality::getInliers(&estimator, model, threshold, pts.rows, inliers);
+            Quality::getInliers(&estimator, model.inv(), threshold, pts.rows, inliers2);
 
             if (inliers2.size() > inliers.size()) {
                 inliers = inliers2;
@@ -263,10 +262,10 @@ public:
                 model = temp.clone();
             }
         } else {
-            estimator = new HomographyEstimator(sorted_pts);
+            HomographyEstimator estimator (sorted_pts);
 
-            Quality::getInliers(estimator, model, threshold, sorted_pts.rows, sorted_inliers);
-            Quality::getInliers(estimator, model.inv(), threshold, sorted_pts.rows, inliers2);
+            Quality::getInliers(&estimator, model, threshold, sorted_pts.rows, sorted_inliers);
+            Quality::getInliers(&estimator, model.inv(), threshold, sorted_pts.rows, inliers2);
 
             if (inliers2.size() > sorted_inliers.size()) {
                 sorted_inliers = inliers2;
@@ -277,14 +276,13 @@ public:
     }
 
     void getGTInliersFromGTModelFundamental (float threshold, bool sorted) {
-        Estimator * estimator;
         std::vector<int> inliers2;
 
         if (! sorted) {
-            estimator = new FundamentalEstimator(pts);
+            FundamentalEstimator estimator(pts);
 
-            Quality::getInliers(estimator, model, threshold, pts.rows, inliers);
-            Quality::getInliers(estimator, model.t(), threshold, pts.rows, inliers2);
+            Quality::getInliers(&estimator, model, threshold, pts.rows, inliers);
+            Quality::getInliers(&estimator, model.t(), threshold, pts.rows, inliers2);
 
             if (inliers2.size() > inliers.size()) {
                 inliers = inliers2;
@@ -292,10 +290,10 @@ public:
                 model = temp.clone();
             }
         } else {
-            estimator = new FundamentalEstimator(sorted_pts);
+            FundamentalEstimator estimator(sorted_pts);
 
-            Quality::getInliers(estimator, model, threshold, sorted_pts.rows, sorted_inliers);
-            Quality::getInliers(estimator, model.t(), threshold, sorted_pts.rows, inliers2);
+            Quality::getInliers(&estimator, model, threshold, sorted_pts.rows, sorted_inliers);
+            Quality::getInliers(&estimator, model.t(), threshold, sorted_pts.rows, inliers2);
 
             if (inliers2.size() > sorted_inliers.size()) {
                 sorted_inliers = inliers2;
@@ -306,25 +304,22 @@ public:
     }
 
     void getGTInliersFromGTModelEssential (float threshold, bool sorted) {
-        Estimator * estimator;
-
         if (sorted) {
-            estimator = new EssentialEstimator(sorted_pts);
-            Quality::getInliers(estimator, model, threshold, sorted_pts.rows, sorted_inliers);
+            EssentialEstimator estimator(sorted_pts);
+            Quality::getInliers(&estimator, model, threshold, sorted_pts.rows, sorted_inliers);
         } else {
-            estimator = new EssentialEstimator(pts);
-            Quality::getInliers(estimator, model, threshold, pts.rows, inliers);
+            EssentialEstimator estimator(pts);
+            Quality::getInliers(&estimator, model, threshold, pts.rows, inliers);
         }
     }
 
     void getGTInliersFromGTModelLine2D (float threshold, bool sorted) {
-        Estimator * estimator;
         if (sorted) {
-            estimator = new Line2DEstimator(sorted_pts);
-            Quality::getInliers(estimator, model, threshold, sorted_pts.rows, sorted_inliers);
+            Line2DEstimator estimator(sorted_pts);
+            Quality::getInliers(&estimator, model, threshold, sorted_pts.rows, sorted_inliers);
         } else {
-            estimator = new Line2DEstimator(pts);
-            Quality::getInliers(estimator, model, threshold, pts.rows, inliers);
+            Line2DEstimator estimator(pts);
+            Quality::getInliers(&estimator, model, threshold, pts.rows, inliers);
         }
 
     }

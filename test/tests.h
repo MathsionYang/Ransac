@@ -110,12 +110,11 @@ public:
 //        std::cout << "SPRT " << model->Sprt << "\n";
 //        std::cout << N << " times \n";
 
-
-        long * times = new long[N];
-        float * num_inlierss = new float[N];
-        float * num_iterss = new float[N];
-        float * num_lo_iterss = new float[N];
-        float * errorss = new float[N];
+        std::vector<long> times(N);
+        std::vector<float> num_inlierss(N);
+        std::vector<float> num_iterss(N);
+        std::vector<float> num_lo_iterss(N);
+        std::vector<float> errorss(N);
         
         long time = 0;
         float num_inliers = 0;
@@ -150,27 +149,27 @@ public:
         for (int i = 0; i < N; i++) {
             Ransac ransac (model, points);
             ransac.run();
-            RansacOutput *ransacOutput = ransac.getRansacOutput();
+            RansacOutput ransacOutput = *ransac.getRansacOutput();
 
             if (model->sampler == SAMPLER::Napsac || model->lo == LocOpt::GC) {
-                times[i] = ransacOutput->getTimeMicroSeconds() + nn_time;
+                times[i] = ransacOutput.getTimeMicroSeconds() + nn_time;
             } else {
-                times[i] = ransacOutput->getTimeMicroSeconds();
+                times[i] = ransacOutput.getTimeMicroSeconds();
             }
 
-            num_inlierss[i] = ransacOutput->getNumberOfInliers();
-            num_iterss[i] = ransacOutput->getNumberOfMainIterations();
-            num_lo_iterss[i] = ransacOutput->getNUmberOfLOIterarations();
+            num_inlierss[i] = ransacOutput.getNumberOfInliers();
+            num_iterss[i] = ransacOutput.getNumberOfMainIterations();
+            num_lo_iterss[i] = ransacOutput.getNUmberOfLOIterarations();
 
             time += times[i];
-            num_inliers += ransacOutput->getNumberOfInliers();
-            num_iters += ransacOutput->getNumberOfMainIterations();
-            num_lo_iters = ransacOutput->getNUmberOfLOIterarations();
+            num_inliers += ransacOutput.getNumberOfInliers();
+            num_iters += ransacOutput.getNumberOfMainIterations();
+            num_lo_iters = ransacOutput.getNUmberOfLOIterarations();
 
             if (GT) {
                 Estimator * estimator;
                 initEstimator(estimator, model->estimator, points);
-                float error = Quality::getErrorToGTInliers(estimator, ransacOutput->getModel()->returnDescriptor(), gt_inliers);
+                float error = Quality::getErrorToGTInliers(estimator, ransacOutput.getModel()->returnDescriptor(), gt_inliers);
 
                 errors += error;
                 errorss[i] = error;
@@ -180,7 +179,7 @@ public:
                  * Ground Truth inliers is less than 50% then
                  * it is fail.
                  */
-                std::vector<int> est_inliers = ransacOutput->getInliers();
+                std::vector<int> est_inliers = ransacOutput.getInliers();
                 float matches = 0;
                 for (int inl = 0; inl < gt_inliers.size(); inl++) {
                     for (int j = 0; j < num_inlierss[i]; j++) {
@@ -204,69 +203,67 @@ public:
             }
         }
         
-        StatisticalResults * results = new StatisticalResults;
+        StatisticalResults results;
         if (GT) {
-            results->num_fails_10 = fails_10;
-            results->num_fails_25 = fails_25;
-            results->num_fails_50 = fails_50;
-            results->avg_avg_error = errors/N;
+            results.num_fails_10 = fails_10;
+            results.num_fails_25 = fails_25;
+            results.num_fails_50 = fails_50;
+            results.avg_avg_error = errors/N;
         }
 
-        results->avg_time_mcs = time/N;
-        results->avg_num_inliers = num_inliers/N;
-        results->avg_num_iters = num_iters/N;
-        results->avg_num_lo_iters = num_lo_iters/N;
+        results.avg_time_mcs = time/N;
+        results.avg_num_inliers = num_inliers/N;
+        results.avg_num_iters = num_iters/N;
+        results.avg_num_lo_iters = num_lo_iters/N;
 
 
         long time_ = 0; float iters_ = 0, lo_iters_ = 0, inl_ = 0, err_ = 0;
         // Calculate sum ((xj - x)^2)
         for (int j = 0; j < N; j++) {
-            time_ += pow (results->avg_time_mcs - times[j], 2);
-            inl_ += pow (results->avg_num_inliers - num_inlierss[j], 2);
-            err_ += pow (results->avg_avg_error - errorss[j], 2);
-            iters_ += pow (results->avg_num_iters - num_iterss[j], 2);
-            lo_iters_ += pow (results->avg_num_lo_iters - num_lo_iterss[j], 2);
+            time_ += pow (results.avg_time_mcs - times[j], 2);
+            inl_ += pow (results.avg_num_inliers - num_inlierss[j], 2);
+            err_ += pow (results.avg_avg_error - errorss[j], 2);
+            iters_ += pow (results.avg_num_iters - num_iterss[j], 2);
+            lo_iters_ += pow (results.avg_num_lo_iters - num_lo_iterss[j], 2);
         }
 
         // Calculate standart deviation
         int biased = 1;
-        results->std_dev_time_mcs = sqrt (time_/(N-biased));
-        results->std_dev_num_inliers = sqrt (inl_/(N-biased));
-        results->std_dev_num_iters = sqrt (iters_/(N-biased));
-        results->std_dev_num_lo_iters = sqrt (lo_iters_/(N-biased));
+        results.std_dev_time_mcs = sqrt (time_/(N-biased));
+        results.std_dev_num_inliers = sqrt (inl_/(N-biased));
+        results.std_dev_num_iters = sqrt (iters_/(N-biased));
+        results.std_dev_num_lo_iters = sqrt (lo_iters_/(N-biased));
 
         if (GT) {
-            results->std_dev_avg_error = sqrt (err_/(N-biased));
+            results.std_dev_avg_error = sqrt (err_/(N-biased));
         }
 
         // Sort results for median
-        std::sort (times, times + N, [] (long a, long b) { return a < b; });
-        std::sort (num_inlierss, num_inlierss + N, [] (float a, float b) { return a < b; });
-        std::sort (num_iterss, num_iterss + N, [] (float a, float b) { return a < b; });
-        std::sort (num_lo_iterss, num_lo_iterss + N, [] (float a, float b) { return a < b; });
-        std::sort (errorss, errorss + N, [] (float a, float b) { return a < b; });
+        std::sort (times.begin(), times.end(), [] (long a, long b) { return a < b; });
+        std::sort (num_inlierss.begin(), num_inlierss.end(), [] (float a, float b) { return a < b; });
+        std::sort (num_iterss.begin(), num_iterss.end(), [] (float a, float b) { return a < b; });
+        std::sort (num_lo_iterss.begin(), num_lo_iterss.end(), [] (float a, float b) { return a < b; });
+        std::sort (errorss.begin(), errorss.end(), [] (float a, float b) { return a < b; });
 
         if (GT) {
-            results->worst_case_error = errorss[N-1];
+            results.worst_case_error = errorss[N-1];
         }
-        results->worst_case_num_inliers = num_inlierss[0];
+        results.worst_case_num_inliers = num_inlierss[0];
 
         // Calcualte median of results for N is even
-        results->median_time_mcs = (times[N/2-1] + times[N/2])/2;
-        results->median_num_inliers = (num_inlierss[N/2-1] + num_inlierss[N/2])/2;
-        results->median_num_iters = (num_iterss[N/2-1] + num_iterss[N/2])/2;
-        results->median_num_lo_iters = (num_lo_iterss[N/2-1] + num_lo_iterss[N/2])/2;
+        results.median_time_mcs = (times[N/2-1] + times[N/2])/2;
+        results.median_num_inliers = (num_inlierss[N/2-1] + num_inlierss[N/2])/2;
+        results.median_num_iters = (num_iterss[N/2-1] + num_iterss[N/2])/2;
+        results.median_num_lo_iters = (num_lo_iterss[N/2-1] + num_lo_iterss[N/2])/2;
         if (GT) {
-            results->median_avg_error = (errorss[N/2-1] + errorss[N/2])/2;
+            results.median_avg_error = (errorss[N/2-1] + errorss[N/2])/2;
         }
 
-//        std::cout << results << "\n";
+       std::cout << &results << "\n";
 
         if (get_results) {
-            statistical_results->copyFrom(results);
+            statistical_results->copyFrom(&results);
         }
-
-        delete errorss, num_inlierss, num_iterss, num_lo_iterss, times, results;
     }
 
     static void testOpenCV (const cv::Mat &points, Model * model, const std::vector<int> &gt_inliers,

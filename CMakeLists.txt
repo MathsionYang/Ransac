@@ -9,99 +9,43 @@ find_package (OpenCV REQUIRED)
 add_executable(
         ransac main.cpp
 
-        generator/generator.cpp
-        generator/generator.h
-
-        detector/Reader.cpp
-        detector/Reader.h
-        detector/detector.cpp
-        detector/detector.h
-
-        usac/quality/quality.hpp
-        usac/quality/line_quality.hpp
-
-        usac/termination_criteria/standard_termination_criteria.hpp
-        usac/termination_criteria/prosac_termination_criteria.hpp
-        usac/termination_criteria/termination_criteria.hpp
-
-        usac/sampler/sampler.hpp
-        usac/sampler/uniform_sampler.hpp
-        usac/sampler/napsac_sampler.hpp
-        usac/sampler/progressive_sampler.hpp
-        usac/sampler/evsac_sampler.hpp
-        usac/sampler/prosac_simple_sampler.hpp
-        usac/sampler/prosac_sampler.hpp
-        usac/sampler/prosac_napsac_sampler.hpp
-
         usac/ransac/ransac.cpp
-        usac/ransac/ransac.hpp
-        usac/ransac/ransac_output.hpp
-        usac/ransac/init.hpp
         usac/ransac/init.cpp
-        
-        usac/estimator/estimator.hpp
-        usac/estimator/line2d_estimator.hpp
-        usac/estimator/homography_estimator.hpp
-        usac/estimator/essential_estimator.hpp
-        usac/estimator/fundamental_estimator.hpp
-        usac/estimator/affine_estimator.hpp
-        
-        usac/estimator/dlt/dlt.hpp usac/estimator/dlt/dlt.cpp
+                
+        usac/estimator/dlt/dlt.cpp
         usac/estimator/dlt/normalized_dlt.cpp
         usac/estimator/dlt/normalizing_transformation.cpp
-
-        usac/estimator/essential/five_points.hpp
         usac/estimator/essential/five_points.cpp
-        usac/estimator/essential/rpoly.cpp usac/estimator/essential/rpoly.hpp
-        usac/estimator/essential/polynomial.hpp
-
+        usac/estimator/essential/rpoly.cpp 
         usac/estimator/fundamental/seven_points.cpp
         usac/estimator/fundamental/eight_points.cpp
-        usac/estimator/fundamental/fundamental_solver.hpp
-
-        usac/local_optimization/local_optimization.hpp
-        usac/local_optimization/inner_local_optimization.hpp
-        usac/local_optimization/iterative_local_optimization.hpp
-        usac/local_optimization/graphcut.cpp usac/local_optimization/graphcut.hpp
-        usac/local_optimization/irls.hpp
-        usac/local_optimization/greedy_local_optimization.hpp
-        usac/local_optimization/sorted_lo.hpp
         
-        usac/model.hpp
-        usac/sprt.hpp
-        usac/precomp.hpp
+        usac/local_optimization/graphcut.cpp 
 
-        test/tests.h
+        usac/utils/math.cpp 
+        usac/utils/nearest_neighbors.cpp 
+        usac/utils/utils.cpp
+
+        generator/generator.cpp
+
+        detector/Reader.cpp
+        detector/detector.cpp
+        
+        helper/drawing/DrawPanorama.cpp
+        helper/drawing/DrawEpipolarLines.cpp
+
+        dataset/Dataset.cpp
+        dataset/SaveGTModel.cpp
+
         test/test_homography_fitting.cpp
         test/test_line2d_fitting.cpp
         test/test_essential_fitting.cpp
         test/test_fundamental_fitting.cpp
         test/test_affine_fitting.cpp
         test/test.cpp
-        test/statistical_results.h
         test/test_neighbors_search.cpp
-        test/test_precomp.hpp
         test/test_utils.cpp
         test/test_density_prosac.cpp
-        
-        helper/Logging.h
-        helper/drawing/Drawing.h
-        helper/drawing/DrawPanorama.cpp
-        helper/drawing/DrawEpipolarLines.cpp
-
-        usac/random_generator/random_generator.hpp
-        usac/random_generator/array_random_generator.hpp
-        usac/random_generator/uniform_random_generator.hpp
-        test/test_random_generator.h
-
-        dataset/Dataset.h dataset/Dataset.cpp
-        dataset/SaveGTModel.h dataset/SaveGTModel.cpp
-        dataset/GetImage.h
-
-        usac/utils/math.cpp usac/utils/math.hpp
-        usac/utils/nearest_neighbors.cpp usac/utils/nearest_neighbors.hpp
-        usac/utils/utils.hpp
-        usac/utils/utils.cpp
 )
 
 # parallel

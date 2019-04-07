@@ -17,7 +17,7 @@ private:
     unsigned int max_iterations;
     const float EPSILON = 0.0005;
 public:
-
+    ~StandardTerminationCriteria() override = default;
     /*
      * Initialize termination criteria
      */

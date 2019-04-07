@@ -62,6 +62,9 @@ public:
                 << res->num_fails_25 << " failed models (< 25% inliers ratio) \n"
                 << res->num_fails_50 << " failed models (< 50% inliers ratio) \n";
     }
+//    void copyFrom (StatisticalResults statisticalResults) {
+//
+//    }
 
     void copyFrom (StatisticalResults * statisticalResults) {
         avg_time_mcs = statisticalResults->avg_time_mcs;

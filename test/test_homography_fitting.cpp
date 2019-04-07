@@ -58,10 +58,10 @@ void Tests::testHomographyFitting() {
 
     if (model->sampler ==  SAMPLER::Prosac) {
 //        test (sorted_points, model, img_name, dataset, true, gt_sorted_inliers);
-        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+        // getStatisticalResults(sorted_points, model, 200, true, gt_sorted_inliers, false, nullptr);
     } else {
 //        test (points, model, img_name, dataset, true, gt_inliers);
-//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+       getStatisticalResults(points, model, 50, true, gt_inliers, false, nullptr);
     }
 
 //    auto t = std::chrono::steady_clock::now();
@@ -70,7 +70,7 @@ void Tests::testHomographyFitting() {
 //    std::cout << (std::chrono::duration_cast<std::chrono::microseconds>
 //            (std::chrono::steady_clock::now() - t).count()) << " time opencv\n";
 
-    storeResultsHomography();
+    // storeResultsHomography();
 }
 
 

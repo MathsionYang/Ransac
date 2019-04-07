@@ -35,7 +35,11 @@ public:
     ~Ransac () {
         if (model->sprt) delete (sprt);
         if (model->lo != LocOpt ::NullLO) delete (local_optimization);
-        delete(sampler); delete (quality); delete (estimator); delete(termination_criteria);
+        delete (sampler);
+        delete (quality);
+        delete (estimator);
+        delete(termination_criteria);
+        delete (ransac_output);
     }
 
     Ransac (Model * model_, cv::InputArray points_) : points ((float *)points_.getMat().data) {
@@ -93,6 +97,7 @@ public:
     }
 
     void run ();
+    void run_debug ();
 
     void setSampler (Sampler * sampler_) {
         sampler = sampler_;

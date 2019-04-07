@@ -23,7 +23,6 @@
 
 // Nanoflann (only for nearest neighbors searching, maybe we should try to move nanoflann 
 // source code to include folder and don't inlcude whole library)
-// #include <nanoflann.hpp>
 #include "../include/nanoflann/nanoflann.hpp"
 #include "../include/nanoflann/KDTreeVectorOfVectorsAdaptor.h"
 
@@ -37,11 +36,5 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/highgui.hpp>
-
-//#include "model.hpp"
-//#include "sampler/sampler.hpp"
-//#include "estimator/estimator.hpp"
-//#include "local_optimization/local_optimization.hpp"
-//#include "random_generator/random_generator.hpp"
 
 #endif // PRECOMP_H

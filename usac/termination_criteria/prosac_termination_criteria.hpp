@@ -29,7 +29,7 @@ private:
     float threshold;
 public:
 
-    ~ProsacTerminationCriteria () {
+    ~ProsacTerminationCriteria () override {
         delete[] maximality_samples; delete[] non_random_inliers;
         delete (standart_termination_criteria);
     }

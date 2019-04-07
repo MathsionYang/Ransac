@@ -23,6 +23,29 @@ public:
             drawAffine (model, dataset, img_name);
         }
     }
+
+    static void drawPointsByScore (DATASET dataset, const std::string &img_name) {
+        ImageData gt_data (dataset, img_name);
+
+        cv::Mat spts = gt_data.getSortedPoints();
+        cv::Mat img1 = gt_data.getImage1();
+        cv::Mat img2 = gt_data.getImage2();
+
+        for (int i = 0; i < std::min(15, spts.rows); i++) {
+            cv::Point pt1 = cv::Point_<float>(spts.at<float>(i,0), spts.at<float>(i,1));
+            cv::Point pt2 = cv::Point_<float>(spts.at<float>(i,2), spts.at<float>(i,3));
+            cv::circle (img1, pt1, 3, cv::Scalar(0, 0, 255), -1);
+            cv::circle (img2, pt2, 3, cv::Scalar(0, 0, 255), -1);
+            pt1 += cv::Point(0,3);
+            pt2 += cv::Point(0,3);
+            cv::putText(img1, std::to_string(i), pt1, cv::FONT_HERSHEY_SIMPLEX, 0.5 /*font scale*/, cv::Scalar(0, 0, 0), 2);
+            cv::putText(img2, std::to_string(i), pt2, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2/*thickness*/);   
+        }
+        cv::hconcat(img1, img2, img1);
+        drawing_resize(img1);
+        cv::imshow("Sorted points by score", img1);
+        cv::waitKey(0);
+    }
     /*
      * w ~ original width;  h ~ original height; S original square;
      * constraint 1: new square is S' = w' * h' == 480000

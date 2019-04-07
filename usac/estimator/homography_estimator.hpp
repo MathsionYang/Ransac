@@ -115,10 +115,8 @@ public:
             
             error = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
             if (error < threshold) {
-                if (get_inliers)
-                    inliers[num_inliers++] = pt;
-                else
-                    num_inliers++;
+                if (get_inliers) inliers[num_inliers] = pt;
+                num_inliers++;
             }
         }
 
