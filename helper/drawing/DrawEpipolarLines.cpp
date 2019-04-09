@@ -149,4 +149,5 @@ void Drawing::drawEpipolarLines (Model * model, DATASET dataset, const std::stri
 //    imshow("Matches", out_image);
     imshow("Epipolar lines", img1);
     cv::waitKey (0);
+    delete (est);
 }

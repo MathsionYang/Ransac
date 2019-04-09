@@ -27,7 +27,7 @@ protected:
     unsigned int sample_size;
     unsigned int points_size;
     
-    UniformRandomGenerator * randomGenerator;
+    UniformRandomGenerator randomGenerator;
 
     unsigned int * termination_length;
 public:
@@ -39,7 +39,6 @@ public:
     ~ProsacSampler () override {
         if (initialized) {
             delete[] growth_function;
-            delete (randomGenerator);
         }
     }
 
@@ -68,8 +67,7 @@ public:
         // In our experiments, the parameter was set to T_N = 200000
         growth_max_samples = 200000; // model->max_iters
 
-        randomGenerator = new UniformRandomGenerator;
-        if (reset_time) randomGenerator->resetTime();
+        if (reset_time) randomGenerator.resetTime();
         
         growth_function = new unsigned int[points_size];
         // The data points in U_N are sorted in descending order w.r.t. the quality function q.
@@ -120,7 +118,7 @@ public:
 
         // revert to RANSAC-style sampling if maximum number of PROSAC samples have been tested
         if (hypCount > growth_max_samples) {
-            randomGenerator->generateUniqueRandomSet(sample, sample_size, points_size);
+            randomGenerator.generateUniqueRandomSet(sample, sample_size, points_size);
             return;
         }
 
@@ -136,11 +134,11 @@ public:
         // Semi-random sample M_t of size m
         if (growth_function[subset_size] < hypCount) {
             // The sample contains m-1 points selected from U_(n-1) at random and u_n
-            randomGenerator->generateUniqueRandomSet(sample, sample_size-1, subset_size-2);
+            randomGenerator.generateUniqueRandomSet(sample, sample_size-1, subset_size-2);
             sample[sample_size-1] = subset_size-1;
         } else {
             // Select m points from U_n at random.
-            randomGenerator->generateUniqueRandomSet(sample, sample_size, subset_size-1);
+            randomGenerator.generateUniqueRandomSet(sample, sample_size, subset_size-1);
         }
         hypCount++;
         return;
@@ -149,7 +147,7 @@ public:
 
         // if current stopping length is less than size of current pool, use only points up to the stopping length
         if (subset_size > *termination_length) {
-            randomGenerator->generateUniqueRandomSet(sample, sample_size, *termination_length);
+            randomGenerator.generateUniqueRandomSet(sample, sample_size, *termination_length);
             return;
         }
 
@@ -165,7 +163,7 @@ public:
         }
 
         // generate PROSAC sample in range <0, subset_size-2>
-        randomGenerator->generateUniqueRandomSet(sample, sample_size-1, subset_size-2);
+        randomGenerator.generateUniqueRandomSet(sample, sample_size-1, subset_size-2);
         sample[sample_size-1] = subset_size-1;
 
         hypCount++; // t = t + 1

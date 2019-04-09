@@ -1,18 +1,16 @@
 #ifndef USAC_GETIMAGE_H
 #define USAC_GETIMAGE_H
 
-#include <opencv2/core/mat.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <iostream>
 #include "Dataset.h"
 #include "../detector/Reader.h"
 #include "../usac/estimator/homography_estimator.hpp"
 #include "../usac/estimator/fundamental_estimator.hpp"
+#include "../usac/estimator/essential_estimator.hpp"
+#include "../usac/estimator/line2d_estimator.hpp"
 #include "../usac/quality/quality.hpp"
 #include "../detector/detector.h"
-#include "../usac/estimator/essential_estimator.hpp"
 #include "../usac/utils/utils.hpp"
-#include "../usac/estimator/line2d_estimator.hpp"
 
 class ImageData {
 private:
@@ -72,6 +70,7 @@ public:
             Reader::LoadPointsFromFile(sorted_pts, (folder+img_name+"_spts.txt").c_str());
             Reader::readInliers (inliers, folder+img_name+"_inl.txt");
             EssentialEstimator essentialEstimator(pts);
+            // create temp model class to find ground truth model
             Model m (1, 0, 0, ESTIMATOR::Essential, SAMPLER::Uniform);
             essentialEstimator.EstimateModelNonMinimalSample(&inliers[0], inliers.size(), m);
             model = m.returnDescriptor().clone();
@@ -90,8 +89,8 @@ public:
             std::ifstream read_data_file;
             read_data_file.open (folder+img_name+".txt");
             if (!read_data_file.is_open()) {
-                std::cout << "Wrong directory for file of line2d dataset!\n";
-                exit (0);
+                std::cout << "Wrong directory for file of line2d dataset! GetImage class\n";
+                exit (1);
             }
             int width, height, noise, N;
 
@@ -155,8 +154,8 @@ public:
             cv::hconcat(pts1, pts2, pts);
 
         } else {
-            std::cout << "UNKNOWN DATASET!\n";
-            exit (0);
+            std::cout << "UNKNOWN DATASET! GetImage class\n";
+            exit (1);
         }
 
         img1 = cv::imread(folder+img_name+"A.png");
@@ -165,44 +164,44 @@ public:
             img1 = cv::imread(folder+img_name+"A.jpg");
             img2 = cv::imread(folder+img_name+"B.jpg");
             if (img1.empty()) {
-                std::cout << "WRONG IMAGE DIRECTORY\n";
-                exit (0);
+                std::cout << "WRONG IMAGE DIRECTORY! GetImage class\n";
+                exit (1);
             }
         }
     }
 
     cv::Mat getPoints1 () {
-        if (pts1.empty()) std::cout << "POINTS 1 ARE EMPTY!\n";
+        if (pts1.empty()) std::cout << "POINTS 1 ARE EMPTY! GetImage class\n";
         return pts1;
     }
 
     cv::Mat getPoints2 () {
-        if (pts2.empty()) std::cout << "POINTS 2 ARE EMPTY!\n";
+        if (pts2.empty()) std::cout << "POINTS 2 ARE EMPTY! GetImage class\n";
         return pts2;
     }
 
     cv::Mat getPoints () {
-        if (pts.empty()) std::cout << "POINTS ARE EMPTY!\n";
+        if (pts.empty()) std::cout << "POINTS ARE EMPTY! GetImage class\n";
         return pts;
     }
 
     cv::Mat getSortedPoints () {
-        if (sorted_pts.empty()) std::cout << "SORTED POINTS ARE EMPTY!\n";
+        if (sorted_pts.empty()) std::cout << "SORTED POINTS ARE EMPTY! GetImage class\n";
         return sorted_pts;
     }
 
     cv::Mat getImage1 () {
-        if (img1.empty()) std::cout << "IMAGE 1 IS EMPTY!\n";
+        if (img1.empty()) std::cout << "IMAGE 1 IS EMPTY! GetImage class\n";
         return img1;
     }
 
     cv::Mat getImage2 () {
-        if (img2.empty()) std::cout << "IMAGE 2 IS EMPTY!\n";
+        if (img2.empty()) std::cout << "IMAGE 2 IS EMPTY! GetImage class\n";
         return img2;
     }
 
     cv::Mat getModel () {
-        if (model.empty()) std::cout << "MODEL IS EMPTY!\n";
+        if (model.empty()) std::cout << "MODEL IS EMPTY! GetImage class\n";
         return model;
     }
 
@@ -219,7 +218,7 @@ public:
                 getGTInliersFromGTModelLine2D (threshold, false);
             } else {
                 std::cout << "unkown estimator in getGTinliers in GetImage\n";
-                exit(111);
+                exit(1);
             }
         }
         return inliers;
@@ -238,13 +237,11 @@ public:
                 getGTInliersFromGTModelLine2D (threshold, true);
             } else {
                 std::cout << "unkown estimator in getGTinliersSorted in GetImage\n";
-                exit(111);
+                exit(1);
             }
         }
-
         return sorted_inliers;
     }
-
 
     // get GT inliers using GT Model
     void getGTInliersFromGTModelHomography (float threshold, bool sorted) {
@@ -258,8 +255,7 @@ public:
 
             if (inliers2.size() > inliers.size()) {
                 inliers = inliers2;
-                cv::Mat temp = model.inv();
-                model = temp.clone();
+                model = model.inv();
             }
         } else {
             HomographyEstimator estimator (sorted_pts);
@@ -269,8 +265,7 @@ public:
 
             if (inliers2.size() > sorted_inliers.size()) {
                 sorted_inliers = inliers2;
-                cv::Mat temp = model.inv();
-                model = temp.clone();
+                model = model.inv();
             }
         }
     }
@@ -286,8 +281,7 @@ public:
 
             if (inliers2.size() > inliers.size()) {
                 inliers = inliers2;
-                cv::Mat temp = model.t();
-                model = temp.clone();
+                model = model.t();
             }
         } else {
             FundamentalEstimator estimator(sorted_pts);
@@ -297,8 +291,7 @@ public:
 
             if (inliers2.size() > sorted_inliers.size()) {
                 sorted_inliers = inliers2;
-                cv::Mat temp = model.t();
-                model = temp.clone();
+                model = model.t();
             }
         }
     }
@@ -323,7 +316,6 @@ public:
         }
 
     }
-
 };
 
 #endif //USAC_GETIMAGE_H

@@ -18,9 +18,9 @@ class GraphCut : public LocalOptimization {
 protected:
     Estimator * estimator;
     Quality * quality;
-    Score * gc_score;
-    Model * gc_model;
-    UniformRandomGenerator * uniform_random_generator;
+    Score gc_score;
+    Model gc_model;
+    UniformRandomGenerator uniform_random_generator;
 
     std::vector<std::vector<int>> neighbors_v;
     NeighborsSearch neighborsType;
@@ -36,10 +36,9 @@ public:
 
     ~GraphCut() override {
         delete[] errors; delete[] inliers; delete[] sample;
-        delete (gc_score); delete (gc_model); delete (uniform_random_generator);
     }
     
-    GraphCut (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) {
+    GraphCut (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) : gc_model (model) {
         spatial_coherence = model->spatial_coherence_gc;
         knn = model->k_nearest_neighbors;
         threshold = model->threshold;
@@ -47,9 +46,6 @@ public:
         quality = quality_;
         sqr_thr = 2 * threshold * threshold;
         points_size = points_size_;
-
-        gc_score = new Score;
-        gc_model = new Model (model);
 
         sample_limit = 7 * model->sample_size;
 
@@ -60,9 +56,8 @@ public:
         sample = new int [sample_limit];
 
         // set uniform random generator
-        uniform_random_generator = new UniformRandomGenerator;
-        uniform_random_generator->setSubsetSize(sample_limit);
-        if (model->reset_random_generator) uniform_random_generator->resetTime();
+        uniform_random_generator.setSubsetSize(sample_limit);
+        if (model->reset_random_generator) uniform_random_generator.resetTime();
         //
 
         lo_inner_iterations = model->lo_inner_iterations;
@@ -105,22 +100,22 @@ public:
             is_best_model_updated = false;
 
             // Build graph problem. Apply graph cut to G
-            labeling(best_model->returnDescriptor(), gc_score, inliers);
+            labeling(best_model->returnDescriptor(), &gc_score, inliers);
 
             // if number of "virtual" inliers is too small then break
-            if (gc_score->inlier_number <= sample_size) break;
-            unsigned int labeling_inliers_size = gc_score->inlier_number;
+            if (gc_score.inlier_number <= sample_size) break;
+            unsigned int labeling_inliers_size = gc_score.inlier_number;
 
             for (unsigned int iter = 0; iter < lo_inner_iterations; iter++) {
                 // sample to generate min (|I_7m|, |I|)
                 if (labeling_inliers_size > sample_limit) {
                     // generate random subset in range <0; |I|>
-                    uniform_random_generator->generateUniqueRandomSet(sample, labeling_inliers_size-1);
+                    uniform_random_generator.generateUniqueRandomSet(sample, labeling_inliers_size-1);
                     // sample from inliers of labeling
                     for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
                         sample[smpl] = inliers[sample[smpl]];
                     }
-                    if (! estimator->EstimateModelNonMinimalSample(sample, sample_limit, *gc_model)) {
+                    if (! estimator->EstimateModelNonMinimalSample(sample, sample_limit, gc_model)) {
                         break;
                     }
                 } else {
@@ -132,17 +127,17 @@ public:
                          */
                         break;
                     }
-                    if (! estimator->EstimateModelNonMinimalSample(inliers, labeling_inliers_size, *gc_model)) {
+                    if (! estimator->EstimateModelNonMinimalSample(inliers, labeling_inliers_size, gc_model)) {
                         break;
                     }
                 }
 
-                quality->getNumberInliers(gc_score, gc_model->returnDescriptor());
+                quality->getNumberInliers(&gc_score, gc_model.returnDescriptor());
 
-                if (gc_score->bigger(best_score)) {
+                if (gc_score.bigger(best_score)) {
                     is_best_model_updated = true;
                     best_score->copyFrom(gc_score);
-                    best_model->setDescriptor(gc_model->returnDescriptor());
+                    best_model->setDescriptor(gc_model.returnDescriptor());
                 }
 
                 // only for test
@@ -161,17 +156,17 @@ private:
          * This LSQ must give better model for next GC labeling.
          */
         // use gc_score variable, but we are not getting gc score.
-        quality->getNumberInliers(gc_score, model->returnDescriptor(), model->threshold, true, inliers);
+        quality->getNumberInliers(&gc_score, model->returnDescriptor(), model->threshold, true, inliers);
 
         // return if not enough inliers
-        if (gc_score->inlier_number <= model->sample_size)
+        if (gc_score.inlier_number <= model->sample_size)
             return;
 
         unsigned int one_step_lo_sample_limit = model->lo_sample_size;
 
-        if (gc_score->inlier_number < one_step_lo_sample_limit) {
+        if (gc_score.inlier_number < one_step_lo_sample_limit) {
             // if score is less than limit number sample then take estimation of all inliers
-            estimator->EstimateModelNonMinimalSample(inliers, gc_score->inlier_number, *model);
+            estimator->EstimateModelNonMinimalSample(inliers, gc_score.inlier_number, *model);
         } else {
             // otherwise take some inliers as sample at random
             if (model->sampler == SAMPLER::Prosac) {
@@ -181,7 +176,7 @@ private:
                     sample[smpl] = inliers[smpl];
                 }
             } else {
-                uniform_random_generator->generateUniqueRandomSet(sample, one_step_lo_sample_limit, gc_score->inlier_number-1);
+                uniform_random_generator.generateUniqueRandomSet(sample, one_step_lo_sample_limit, gc_score.inlier_number-1);
                 for (unsigned int smpl = 0; smpl < one_step_lo_sample_limit; smpl++) {
                     sample[smpl] = inliers[sample[smpl]];
                 }

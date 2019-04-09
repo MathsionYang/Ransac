@@ -79,7 +79,7 @@ public:
 
         int inliers_size = input_inliers_idxes.size().width;
         for (int i = 0; i < inliers_size; i++) {
-            circle(image, points[inliers_idxes[i]], 3, cv::Scalar(20, 90, 250), -1);
+            cv::circle(image, points[inliers_idxes[i]], 3, cv::Scalar(20, 90, 250), -1);
         }
     }
 

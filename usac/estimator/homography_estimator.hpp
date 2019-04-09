@@ -12,12 +12,10 @@ class HomographyEstimator : public Estimator{
 private:
     const float * const points;
     float h11, h12, h13, h21, h22, h23, h31, h32, h33;
-    DLt * dlt;
     unsigned int points_size;
+    DLt dlt;
 public:
-    ~HomographyEstimator () {
-        delete (dlt);
-    }
+    ~HomographyEstimator () override = default;
 
     /*
      * @input_points: is matrix of size: number of points x 4
@@ -25,9 +23,8 @@ public:
      * ...
      * xN yN x'N y'N
      */
-    HomographyEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data) {
+    HomographyEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data), dlt(points) {
         assert(!input_points.empty());
-        dlt = new DLt(points);
         points_size = input_points.getMat().rows;
     }
 
@@ -39,20 +36,20 @@ public:
         h31 = H_ptr[6]; h32 = H_ptr[7]; h33 = H_ptr[8];
     }
 
-    unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) override {
+    unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
         cv::Mat H;
-        if (! dlt->DLT4p (sample, H)) {
+        if (! dlt.DLT4p (sample, H)) {
             return 0;
         }
 
-        models[0]->setDescriptor(H);
+        models[0].setDescriptor(H);
 
         return 1;
     }
 
     bool EstimateModelNonMinimalSample (const int * const sample, unsigned int sample_size, Model &model) override {
         cv::Mat H;
-        if (! dlt->NormalizedDLT(sample, sample_size, H)) {
+        if (! dlt.NormalizedDLT(sample, sample_size, H)) {
             return false;
         }
 
@@ -62,7 +59,7 @@ public:
 
     bool EstimateModelNonMinimalSample (const int * const sample, unsigned int sample_size, const float * const weights, Model &model) override {
         cv::Mat H;
-        if (! dlt->NormalizedDLT(sample, sample_size, weights, H)) {
+        if (! dlt.NormalizedDLT(sample, sample_size, weights, H)) {
             return false;
         }
 

@@ -44,34 +44,33 @@ void Tests::testLineFitting() {
 //    std::cout << "generated points\n";
 
     unsigned int knn = 13;
-    Model * model;
     float threshold = 8, confidence = 0.99;
 
     // ---------------- uniform -------------------
-//     model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Uniform);
+//     Model model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Uniform);
 //------------------------------------------
 
     // --------------  prosac ---------------------
-    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Prosac);
+    Model model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Prosac);
      // ------------------------------------------------
 
     // ---------------- napsac -------------------------------
-    // model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Napsac);
+    // Model model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Napsac);
     // ---------------------------------------------------------------------
 
     // ----------------- evsac ------------------------------
-//    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Evsac);
+//    Model model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::Evsac);
 // ------------------------------------------------------------
 
     // ------------------ Progressive Napsac ----------------------
-//    model = new Model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::ProgressiveNAPSAC);
+//    Model model (threshold, confidence, knn, ESTIMATOR::Line2d, SAMPLER::ProgressiveNAPSAC);
 // --------------------------------------------------------
 
-     model->lo = LocOpt ::NullLO;
-     model->setSprt(0);
-     model->setNeighborsType(NeighborsSearch::Nanoflann);
+     model.lo = LocOpt ::NullLO;
+     model.setSprt(0);
+     model.setNeighborsType(NeighborsSearch::Nanoflann);
 
-    if (model->sampler ==  SAMPLER::Prosac) {
+    if (model.sampler ==  SAMPLER::Prosac) {
 //        test (sorted_pts, model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
@@ -134,17 +133,17 @@ void store_results_line2d () {
             results_matlab.open(mfname);
             results_total.open(fname);
 
-            Model * model = new Model(threshold, confidence, knn, ESTIMATOR::Line2d, smplr);
-            model->lo = loc_opt;
-            model->setSprt(sprt);
+            Model model (threshold, confidence, knn, ESTIMATOR::Line2d, smplr);
+            model.lo = loc_opt;
+            model.setSprt(sprt);
 
             results_total << Tests::getComputerInfo();
-            results_total << Tests::sampler2string(model->sampler)+"_"+Tests::estimator2string(model->estimator) << "\n";
+            results_total << Tests::sampler2string(model.sampler)+"_"+Tests::estimator2string(model.estimator) << "\n";
             results_total << "Runs for each image = " << N_runs << "\n";
-            results_total << "Threshold for each image = " << model->threshold << "\n";
-            results_total << "Desired probability for each image = " << model->confidence << "\n";
-            results_total << "LO = " << (bool) model->lo << "\n";
-            results_total << "SPRT = " << (bool) model->sprt << "\n\n\n";
+            results_total << "Threshold for each image = " << model.threshold << "\n";
+            results_total << "Desired probability for each image = " << model.confidence << "\n";
+            results_total << "LO = " << (bool) model.lo << "\n";
+            results_total << "SPRT = " << (bool) model.sprt << "\n\n\n";
 
             results_total << "Filename,GT Inl,Avg num inl/gt,Std dev num inl,Med num inl,"
                              "Avg num iters,Std dev num iters,Med num iters,"
@@ -160,24 +159,24 @@ void store_results_line2d () {
             for (int img = 0; img < points_filename.size(); img++) {
                 std::cout << points_filename[img] << "\n";
 
-                StatisticalResults *statistical_results = new StatisticalResults;
+                StatisticalResults statistical_results;
                 if (smplr == SAMPLER::Prosac) {
-                    Tests::getStatisticalResults(sorted_points[img], model, N_runs,
-                                                true, gt_inliers[img], true, statistical_results);
+                    Tests::getStatisticalResults(sorted_points[img], &model, N_runs,
+                                                true, gt_inliers[img], true, &statistical_results);
                 } else {
-                    Tests::getStatisticalResults(points[img], model, N_runs,
-                                                true, gt_inliers[img], true, statistical_results);
+                    Tests::getStatisticalResults(points[img], &model, N_runs,
+                                                true, gt_inliers[img], true, &statistical_results);
                 }
 
                 // save to csv file
                 // save to csv file
                 results_total << points_filename[img] << ",";
                 results_total << gt_inliers[img].size() << ",";
-                Logging::saveResultsCSV(results_total, statistical_results);
+                Logging::saveResultsCSV(results_total, &statistical_results);
 
                 // save results for matlab
                 results_matlab << points_filename[img] << ",";
-                Logging::saveResultsMatlab(results_matlab, statistical_results);
+                Logging::saveResultsMatlab(results_matlab, &statistical_results);
 
                 img++;
             }

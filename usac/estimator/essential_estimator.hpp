@@ -13,13 +13,10 @@ class EssentialEstimator : public Estimator {
 private:
     const float * const points;
     float e11, e12, e13, e21, e22, e23, e31, e32, e33;
-    EssentialSolver * e_solver;
-    FundamentalSolver * f_solver;
+    EssentialSolver e_solver;
+    FundamentalSolver f_solver;
 public:
-    ~EssentialEstimator () {
-        delete (e_solver);
-        delete (f_solver);
-    }
+    ~EssentialEstimator () override = default;
 
     /*
      * @input_points: is matrix of size: number of points x 4
@@ -29,10 +26,9 @@ public:
      *
      * Y^T E Y = 0
      */
-    EssentialEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data) {
+    EssentialEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data), 
+                                                      e_solver (points), f_solver(points) {
         assert(!input_points.empty());
-        e_solver = new EssentialSolver (points);
-        f_solver = new FundamentalSolver (points);
     }
 
     void setModelParameters (const cv::Mat& model) override {
@@ -49,13 +45,13 @@ public:
      * x' = (y'1 y'2 y'3) / y'3
      * x  = (y1  y2  y3)  / y3
      */
-    unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) override {
+    unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
         cv::Mat_<float> E;
 
-        unsigned int models_count = e_solver->FivePoints (sample, E);
+        unsigned int models_count = e_solver.FivePoints (sample, E);
 
         for (unsigned int i = 0; i < models_count; i++) {
-            models[i]->setDescriptor(E.rowRange(i * 3, i * 3 + 3));
+            models[i].setDescriptor(E.rowRange(i * 3, i * 3 + 3));
         }
 
         return models_count;
@@ -64,7 +60,7 @@ public:
     bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, Model &model) override {
         cv::Mat_<float> E;
 
-        if (! f_solver->EightPointsAlgorithm(sample, sample_size, E)) {
+        if (! f_solver.EightPointsAlgorithm(sample, sample_size, E)) {
             return false;
         }
 

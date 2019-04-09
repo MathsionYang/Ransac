@@ -23,7 +23,7 @@ private:
     unsigned int points_size;
     unsigned int sample_size;
 
-    StandardTerminationCriteria * standart_termination_criteria;
+    StandardTerminationCriteria standart_termination_criteria;
     Estimator * estimator;
 
     float threshold;
@@ -31,7 +31,6 @@ public:
 
     ~ProsacTerminationCriteria () override {
         delete[] maximality_samples; delete[] non_random_inliers;
-        delete (standart_termination_criteria);
     }
 
     void setLargestSampleSize (unsigned int * largest_sample_size_) {
@@ -44,10 +43,9 @@ public:
     ProsacTerminationCriteria (unsigned int * growth_function_,
                                         const Model * const model,
                                         unsigned int points_size_,
-                                        Estimator * estimator_) {
-
-        standart_termination_criteria = new StandardTerminationCriteria (model, points_size_);
-
+                                        Estimator * estimator_) :
+                                        standart_termination_criteria (model, points_size_) {
+        
         estimator = estimator_;
         growth_function = growth_function_;
         
@@ -124,11 +122,11 @@ public:
     }
 
     inline unsigned int getUpBoundIterations (unsigned int inlier_size) override {
-        return standart_termination_criteria->getUpBoundIterations(inlier_size);
+        return standart_termination_criteria.getUpBoundIterations(inlier_size);
     }
 
     inline unsigned int getUpBoundIterations (unsigned int inlier_size, unsigned int points_size) override {
-        return standart_termination_criteria->getUpBoundIterations(inlier_size, points_size);
+        return standart_termination_criteria.getUpBoundIterations(inlier_size, points_size);
     }
 
 
@@ -175,7 +173,7 @@ public:
 
                 // update the number of samples based on this inlier count
                 if ((i == points_size-1) || (is_inlier_i && !is_inlier_iplus1)) {
-                    unsigned int new_samples = standart_termination_criteria->
+                    unsigned int new_samples = standart_termination_criteria.
                                             getUpBoundIterations(inlier_count, i+1);
 //                    std::cout << new_samples << "\n";
                     if (i+1 < *largest_sample_size) {

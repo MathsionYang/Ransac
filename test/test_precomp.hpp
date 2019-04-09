@@ -11,7 +11,4 @@
 // OpenCV
 #include <opencv2/core/types.hpp>
 
-//#include "tests.h"
-//#include "statistical_results.h"
-
 #endif //USAC_TEST_PRECOMP_HPP

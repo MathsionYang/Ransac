@@ -1,13 +1,13 @@
 #include "detector.h"
 #include "Reader.h"
-#include "../dataset/Dataset.h"
 #include "../usac/estimator/estimator.hpp"
 #include "../usac/estimator/fundamental_estimator.hpp"
-#include "../usac/utils/utils.hpp"
-#include "../usac/estimator/essential_estimator.hpp"
 #include "../usac/quality/quality.hpp"
 // https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_matcher/py_matcher.html
 
+/*
+ * Detect point (features) of image by SIFT KNN=2 detector, decide good point by Lowe ratio test.
+ */
 void DetectFeatures(const std::string &name, const cv::Mat &image1, const cv::Mat &image2, cv::Mat &points)
 {
 
@@ -112,7 +112,6 @@ void DetectFeatures(const std::string &name, const cv::Mat &image1, const cv::Ma
  *
  * Example of usage
  * std::vector<cv::KeyPoint> points = detect("data/image1.jpg", "sift");
- *
  */
 std::vector<cv::KeyPoint> detect(std::string filename, std::string detector_name) {
 	cv::Mat img = imread (filename, cv::IMREAD_GRAYSCALE);
@@ -173,7 +172,9 @@ std::vector<cv::KeyPoint> detect(std::string filename, std::string detector_name
 	return keypoints;
 }
 
-
+/*
+ * Detecting points for MVS Strecha dataset by Projection matrices
+ */
 bool detectFeaturesForEssentialMatrix (const cv::Mat &P1, const cv::Mat &P2, const std::string &img1_name,
                                        const std::string &img2_name, const std::string &out_name, float threshold) {
     cv::Mat K1, R1, t1;
@@ -187,18 +188,18 @@ bool detectFeaturesForEssentialMatrix (const cv::Mat &P1, const cv::Mat &P2, con
     cv::Mat image1 = cv::imread(img1_name);
     cv::Mat image2 = cv::imread(img2_name);
     if (image1.empty() || image2.empty()) {
-        std::cout << "wrong direction to images for essential dataset\n";
-        exit (0);
+        std::cout << "wrong direction to images for essential dataset! detector\n";
+        exit (1);
     }
     cv::Mat points;
     // Detect and match features
     DetectFeatures(out_name+"_pts.txt", image1, image2, points);
 
     std::vector<int> gt_inliers;
-    Estimator * fundamental = new FundamentalEstimator (points);
-    Quality::getInliers(fundamental, F_gt, threshold, points.rows, gt_inliers);
+    FundamentalEstimator fundamental (points);
+    Quality::getInliers(&fundamental, F_gt, threshold, points.rows, gt_inliers);
 
-    if (gt_inliers.size() < 20) {
+    if (gt_inliers.size() < 50) {
         std::remove((out_name+"_pts.txt").c_str());
         std::remove((out_name+"_spts.txt").c_str());
         std::remove((out_name+"_score.txt").c_str());

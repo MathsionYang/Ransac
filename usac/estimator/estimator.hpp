@@ -16,7 +16,7 @@ public:
     virtual ~Estimator () = default;
 
     // minimal model estimation
-    virtual unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) = 0;
+    virtual unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) = 0;
     
     virtual bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, Model &model) = 0;
     virtual bool LeastSquaresFitting (const int * const sample, unsigned int sample_size, Model &model) {

@@ -142,7 +142,9 @@ public:
         cell_size = model->cell_size;
         neighborsType = model->neighborsType;
         max_hypothesis_test_before_sprt = model->max_hypothesis_test_before_sprt;
-//        descriptor = model->descriptor;
+        if (!model->descriptor.empty()) {
+			model->descriptor.copyTo(descriptor);
+		}
 	}
 };
 

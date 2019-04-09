@@ -22,7 +22,7 @@ private:
     Estimator * estimator;
     Score * lo_score;
     Model * lo_model;
-    UniformRandomGenerator * uniform_random_generator;
+    UniformRandomGenerator uniform_random_generator;
     IterativeLocalOptimization * iterativeLocalOptimization;
 
     int *lo_inliers, *max_inliers, *lo_sample;
@@ -33,7 +33,7 @@ public:
 
     ~InnerLocalOptimization () override {
         delete[] lo_inliers; delete[] lo_sample; delete[] max_inliers;
-        delete (lo_score); delete (lo_model); delete (uniform_random_generator); delete (iterativeLocalOptimization);
+        delete (lo_score); delete (lo_model); delete (iterativeLocalOptimization);
     }
 
     InnerLocalOptimization (Model *model, Estimator *estimator_, Quality *quality_, unsigned int points_size) {
@@ -53,15 +53,14 @@ public:
         lo_model = new Model (model);
 
         // ------------- set random generator --------------
-        uniform_random_generator = new UniformRandomGenerator;
-        uniform_random_generator->setSubsetSize(sample_limit);
-        if (model->reset_random_generator) uniform_random_generator->resetTime();
+        uniform_random_generator.setSubsetSize(sample_limit);
+        if (model->reset_random_generator) uniform_random_generator.resetTime();
         // -----------------------------------
 
         limited = model->lo == LocOpt ::InItFLORsc;
         // ----------------------
         iterativeLocalOptimization = new IterativeLocalOptimization
-                (points_size, model, uniform_random_generator, estimator, quality);
+                (points_size, model, &uniform_random_generator, estimator, quality);
 
         lo_inner_iters = 0;
         lo_iterative_iters = 0;
@@ -83,7 +82,7 @@ public:
             // Generate sample of lo_sample_size from inliers from the best model.
             if (best_score->inlier_number > sample_limit) {
                 // if there are many inliers take limited number at random.
-                uniform_random_generator->generateUniqueRandomSet(lo_sample, best_score->inlier_number-1);
+                uniform_random_generator.generateUniqueRandomSet(lo_sample, best_score->inlier_number-1);
                 // get inliers from maximum inliers from lo
                 for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
                     lo_sample[smpl] = max_inliers[lo_sample[smpl]];

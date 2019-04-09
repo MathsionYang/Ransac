@@ -58,6 +58,9 @@ private:
     Estimator * estimator;
     float threshold;
 public:
+    ~DLTCov() {
+        delete[] inlier_flags;
+    }
     DLTCov (unsigned int points_size_, const float * const points_, Estimator * estimator_, float threshold_) : points (points_) {
         points_size = points_size_;
         estimator = estimator_;

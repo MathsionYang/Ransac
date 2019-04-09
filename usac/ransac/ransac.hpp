@@ -38,7 +38,7 @@ public:
         delete (sampler);
         delete (quality);
         delete (estimator);
-        delete(termination_criteria);
+        delete (termination_criteria);
         delete (ransac_output);
     }
 

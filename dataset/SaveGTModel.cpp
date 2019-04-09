@@ -5,9 +5,14 @@
 #include "../usac/estimator/estimator.hpp"
 #include "../usac/estimator/fundamental_estimator.hpp"
 
+
+/*
+ * Save model (matrix F) for Adelaidermf dataset based on ground truth inliers.
+ * Save model by non minimal least squares fitting of all-GT-inliers.
+ */
 void saveGTModel (DATASET dataset) {
     if (dataset != DATASET::Adelaidermf) {
-        std::cout << "CURRENTLY NOT IMPLEMENTED\n";
+        std::cout << "CURRENTLY NOT IMPLEMENTED! SaveGTModel\n";
         return;
     }
 
@@ -21,12 +26,12 @@ void saveGTModel (DATASET dataset) {
         Reader::getInliers (folder+img+"_pts.txt", inliers);
 
         cv::hconcat(pts1, pts2, pts1);
-        Estimator * estimator = new FundamentalEstimator (pts1);
-        Model * model = new Model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
-        estimator->EstimateModelNonMinimalSample(&inliers[0], inliers.size(), *model);
+        FundamentalEstimator estimator (pts1);
+        Model model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        estimator.EstimateModelNonMinimalSample(&inliers[0], inliers.size(), model);
+        cv::Mat F = model.returnDescriptor();
         std::ofstream save_model;
         save_model.open (folder + img + "_model.txt");
-        cv::Mat F = model->returnDescriptor();
         save_model << F.at<float>(0,0) << " " << F.at<float>(0,1) << " " << F.at<float>(0,2) << "\n" <<
                       F.at<float>(1,0) << " " << F.at<float>(1,1) << " " << F.at<float>(1,2) << "\n" <<
                       F.at<float>(2,0) << " " << F.at<float>(2,1) << " " << F.at<float>(2,2) << "\n";
@@ -34,12 +39,15 @@ void saveGTModel (DATASET dataset) {
     }
 }
 
+/*
+ * Save model (matrix F) exactly same way as before for Kusvod2 dataset, only check if
+ * there already exist valid model.
+ */
 void saveGTModelKusvod2 () {
     float threshold = 2;
     std::string folder =  "../dataset/Lebeda/kusvod2/";
     std::vector<std::string> images = Dataset::getKusvod2Dataset();
     for (std::string &img : images) {
-
         std::ifstream orig_model;
         orig_model.open (folder + img + "_vpts_model.txt");
         float f11 = 0, f12 = 0, f13 = 0, f21 = 0, f22 = 0, f23 = 0, f31 = 0, f32 = 0, f33 = 0;
@@ -54,20 +62,17 @@ void saveGTModelKusvod2 () {
 
         cv::Mat_<float> pts;
         Reader::getPointsNby6 (folder+img+"_vpts_pts.txt", pts);
-        Estimator * estimator = new FundamentalEstimator (pts);
-        Model * model = new Model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        FundamentalEstimator estimator (pts);
+        Model model (threshold, 0.95, 5, ESTIMATOR::Fundamental, SAMPLER::Uniform);
         std::vector<int> inliers;
         for (int i = 0; i < pts.rows; i++) {
             inliers.push_back(i);
         }
-        estimator->EstimateModelNonMinimalSample(&inliers[0], inliers.size(), *model);
-
-
-
+        estimator.EstimateModelNonMinimalSample(&inliers[0], inliers.size(), model);
 
         std::ofstream save_model;
         save_model.open (folder + img + "_vpts_model.txt");
-        cv::Mat F = model->returnDescriptor();
+        cv::Mat F = model.returnDescriptor();
         save_model << F.at<float>(0,0) << " " << F.at<float>(0,1) << " " << F.at<float>(0,2) << "\n" <<
                    F.at<float>(1,0) << " " << F.at<float>(1,1) << " " << F.at<float>(1,2) << "\n" <<
                    F.at<float>(2,0) << " " << F.at<float>(2,1) << " " << F.at<float>(2,2) << "\n";

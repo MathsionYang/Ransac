@@ -1,4 +1,19 @@
 cmake_minimum_required(VERSION 2.8)
+
+if (UNIX AND NOT APPLE)
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version ERROR_QUIET OUTPUT_VARIABLE ld_version)
+  if ("${ld_version}" MATCHES "GNU gold")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold -Wl,--disable-new-dtags")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold -Wl,--disable-new-dtags")
+  endif()
+endif()
+
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 set (CMAKE_CXX_STANDARD 11)
 # comment or change
 SET(OpenCV_DIR /home/miv1774/opencv-3.4.0/build/lib)
@@ -53,7 +68,7 @@ add_executable(
 # warnings
 # set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra" )
 # optimalization
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3" )
+# set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3" )
 
 target_link_libraries (ransac ${OpenCV_LIBS} )
 
@@ -61,10 +76,6 @@ target_link_libraries (ransac ${OpenCV_LIBS} )
 #find_package(Theia REQUIRED)
 #include_directories(${THEIA_INCLUDE_DIRS})
 #target_link_libraries (ransac ${THEIA_LIBRARIES})
-
-# Nanoflann
-# find_package(nanoflann)
-# target_link_libraries(ransac nanoflann::nanoflann)
 
 # Eigen
 # find_package (Eigen3 3.3 REQUIRED NO_MODULE)

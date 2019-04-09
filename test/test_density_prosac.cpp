@@ -47,25 +47,25 @@ void Tests::testDensityProsac () {
 
     std::cout << N_runs <<" for each " << num_images  << "\n";
 
-    Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
-    // Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
-    model->lo = LocOpt ::NullLO;
-    model->setNeighborsType(NeighborsSearch::Grid);
-    model->setCellSize(cell_size);
-    model->ResetRandomGenerator(true);
+    Model model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
+    // Model model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
+    model.lo = LocOpt ::NullLO;
+    model.setNeighborsType(NeighborsSearch::Grid);
+    model.setCellSize(cell_size);
+    model.ResetRandomGenerator(true);
 
     int img = 0;
     float avg_avg_avg_error;
     float avg_avg_time;
 
     avg_avg_avg_error = 0; avg_avg_time = 0;
+    StatisticalResults statistical_results;
     for (const std::string &img_name : points_filename) {
-        StatisticalResults * statistical_results = new StatisticalResults;
-            Tests::getStatisticalResults(sift_sorted_points_imgs[img], model, N_runs,
-                                        true, sift_sorted_gt_inliers[img], true, statistical_results);
+            Tests::getStatisticalResults(sift_sorted_points_imgs[img], &model, N_runs,
+                                        true, sift_sorted_gt_inliers[img], true, &statistical_results);
 
-        float avg_avg_error = statistical_results->avg_avg_error;
-        float avg_time = statistical_results->avg_time_mcs;
+        float avg_avg_error = statistical_results.avg_avg_error;
+        float avg_time = statistical_results.avg_time_mcs;
     	std::cout << avg_time << " " << avg_avg_error << "\n";    
         avg_avg_avg_error += avg_avg_error;
         avg_avg_time += avg_time;
@@ -78,12 +78,11 @@ void Tests::testDensityProsac () {
     img = 0;
     avg_avg_avg_error = 0; avg_avg_time = 0;
     for (const std::string &img_name : points_filename) {
-        StatisticalResults * statistical_results = new StatisticalResults;
-            Tests::getStatisticalResults(dense_sorted_points_imgs[img], model, N_runs,
-                                        true, dense_sorted_gt_inliers[img], true, statistical_results);
+            Tests::getStatisticalResults(dense_sorted_points_imgs[img], &model, N_runs,
+                                        true, dense_sorted_gt_inliers[img], true, &statistical_results);
 
-        float avg_avg_error = statistical_results->avg_avg_error;
-        float avg_time = statistical_results->avg_time_mcs;
+        float avg_avg_error = statistical_results.avg_avg_error;
+        float avg_time = statistical_results.avg_time_mcs;
     	std::cout << avg_time << " " << avg_avg_error << "\n";    
         avg_avg_avg_error += avg_avg_error;
         avg_avg_time += avg_time;
@@ -123,12 +122,14 @@ void Tests::testDensityOptimalKnn () {
         std::cout << "points size " << points.rows << "\n";
     }
 
-    Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
-    // Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
-    model->lo = LocOpt ::NullLO;
-    model->setNeighborsType(NeighborsSearch::Grid);
-    model->setCellSize(cell_size);
-    model->ResetRandomGenerator(true);
+    Model model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
+    // Model model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
+    model.lo = LocOpt ::NullLO;
+    model.setNeighborsType(NeighborsSearch::Grid);
+    model.setCellSize(cell_size);
+    model.ResetRandomGenerator(true);
+
+    StatisticalResults statistical_results;
 
     for (int k = 3; k < 15; k++) {
 
@@ -145,12 +146,11 @@ void Tests::testDensityOptimalKnn () {
             float dense_sorting_time = std::chrono::duration_cast<std::chrono::microseconds>(fs).count();
 
 
-            StatisticalResults * statistical_results = new StatisticalResults;
-                Tests::getStatisticalResults(dense_sorted_points, model, N_runs,
-                                            true, dense_inliers, true, statistical_results);
+                Tests::getStatisticalResults(dense_sorted_points, &model, N_runs,
+                                            true, dense_inliers, true, &statistical_results);
 
-            float avg_avg_error = statistical_results->avg_avg_error;
-            float avg_time = statistical_results->avg_time_mcs;
+            float avg_avg_error = statistical_results.avg_avg_error;
+            float avg_time = statistical_results.avg_time_mcs;
             std::cout << avg_time << " " << avg_avg_error << "\n";    
             avg_avg_avg_error += avg_avg_error;
             avg_avg_time += avg_time + dense_sorting_time;

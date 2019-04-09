@@ -13,12 +13,9 @@ private:
     const float * const points;
     float f11, f12, f13, f21, f22, f23, f31, f32, f33;
     unsigned int points_size;
-    FundamentalSolver * solver;
+    FundamentalSolver solver;
 public:
-    ~FundamentalEstimator () {
-        delete (solver);
-    }
-
+    ~FundamentalEstimator () override = default;
     /*
      * @input_points: is matrix of size: number of points x 4
      * x1 y1 x'1 y'1
@@ -27,10 +24,9 @@ public:
      *
      * X^T F X = 0
      */
-    FundamentalEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data) {
+    FundamentalEstimator(cv::InputArray input_points) : points((float *)input_points.getMat().data), solver (points) {
         assert(!input_points.empty());
         points_size = input_points.getMat().rows;
-        solver = new FundamentalSolver (points);
     }
 
     void setModelParameters (const cv::Mat& model) override {
@@ -45,17 +41,17 @@ public:
         f31 = F_ptr[6]; f32 = F_ptr[7]; f33 = F_ptr[8];
     }
 
-    unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) override {
+    unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
         cv::Mat_<float> F;
 
-        unsigned int roots = solver->SevenPointsAlgorithm(sample, F);
+        unsigned int roots = solver.SevenPointsAlgorithm(sample, F);
 
 //        std::cout << "Roots " << roots << "\n\n";
 
         unsigned int valid_solutions = 0;
         for (unsigned int i = 0; i < roots; i++) {
             if (isModelValid(F.rowRange(i * 3, i * 3 + 3), sample)) {
-                models[valid_solutions++]->setDescriptor(F.rowRange(i * 3, i * 3 + 3));
+                models[valid_solutions++].setDescriptor(F.rowRange(i * 3, i * 3 + 3));
             }
         }
 
@@ -65,7 +61,7 @@ public:
     bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, Model &model) override {
         cv::Mat_<float> F;
 
-        if (! solver->EightPointsAlgorithm(sample, sample_size, F)) {
+        if (! solver.EightPointsAlgorithm(sample, sample_size, F)) {
 //        if (! EightPointsAlgorithmEigen(sample, sample_size, F)) {
                 return false;
         }
@@ -78,7 +74,7 @@ public:
     bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, const float *const weights, Model &model) override {
         cv::Mat_<float> F;
 
-        if (! solver->EightPointsAlgorithm(sample, weights, sample_size, F)) {
+        if (! solver.EightPointsAlgorithm(sample, weights, sample_size, F)) {
                 return false;
         }
 

@@ -33,7 +33,7 @@ public:
      * c = --------------------------------
      *     sqrt ((x1 - x2)^2 + (y2 - y1)^2)
      */
-    unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) override {
+    unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
         const int idx1 = sample[0];
         const int idx2 = sample[1];
         
@@ -49,7 +49,7 @@ public:
         c = (points[2*idx1] * points[2*idx2+1] - points[2*idx2] * points[2*idx1+1])/mag;
 
         // Set the model descriptor
-        models[0]->setDescriptor((cv::Mat_<float>(1,3) <<  a, b, c));
+        models[0].setDescriptor((cv::Mat_<float>(1,3) <<  a, b, c));
         return 1;
     }
 

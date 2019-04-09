@@ -1,7 +1,6 @@
 #ifndef USAC_DATASET_H
 #define USAC_DATASET_H
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>

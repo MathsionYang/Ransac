@@ -15,7 +15,7 @@
  */
 class NapsacSampler : public Sampler {
 private:
-    RandomGenerator * random_generator;
+    ArrayRandomGenerator random_generator;
     int knn = 0;
     int * neighbors = 0;
     std::vector<std::vector<int>> neighbors_v;
@@ -24,10 +24,8 @@ private:
     bool do_uniform = false;
 
 public:
-
     ~NapsacSampler() override {
         delete[] next_neighbors;
-        delete (random_generator);
     }
 
     /*
@@ -48,10 +46,9 @@ public:
         // check if nearest neighbors is enough to sample
         assert (knn >= sample_size-1);
 
-        random_generator = new ArrayRandomGenerator;
-        if (model->reset_random_generator) random_generator->resetTime();
-        random_generator->resetGenerator(0, points_size-1);
-        random_generator->setSubsetSize(1);
+        if (model->reset_random_generator) random_generator.resetTime();
+        random_generator.resetGenerator(0, points_size-1);
+        random_generator.setSubsetSize(1);
 
         // allocate as zeros (starting from 1 neighbors)
         next_neighbors = (int *) calloc (points_size, sizeof (int));
@@ -74,7 +71,7 @@ public:
      * Take (sample_size-1) points from initial point neighborhood.
      */
     void generateSampleKNN (int * sample) {
-        int initial_point = random_generator->getRandomNumber();
+        int initial_point = random_generator.getRandomNumber();
         sample[0] = initial_point;
 
 //        std::cout << sample[0] << " ";
@@ -101,7 +98,7 @@ public:
         int initial_point;
         int i;
         for (i = 0; i < points_size; i++) {
-            initial_point = random_generator->getRandomNumber();
+            initial_point = random_generator.getRandomNumber();
 //            std::cout << neighbors_v[initial_point].size() << "\n";
             if (neighbors_v[initial_point].size() < sample_size) continue;
             break;
@@ -133,7 +130,7 @@ public:
         } else if (! do_uniform){
             generateSampleGrid(sample);
         } else {
-            random_generator->generateUniqueRandomSet(sample);
+            random_generator.generateUniqueRandomSet(sample);
         }
     }
 

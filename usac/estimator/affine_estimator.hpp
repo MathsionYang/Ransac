@@ -12,8 +12,7 @@ private:
     const float * const points;
     float a, b, c, d, e, f;
 public:
-    ~AffineEstimator () {
-    }
+    ~AffineEstimator () override = default;
 
     /*
      * @input_points: is matrix of size: number of points x 4
@@ -43,7 +42,7 @@ public:
         0  0  0 x3 y3 1   f   y3'
     */
         
-    unsigned int EstimateModel(const int * const sample, std::vector<Model*>& models) override {
+    unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
         cv::Mat_<float> A (6, 1);
         float * A_ptr = (float *) A.data;
         unsigned int smpl1 = 4*sample[0], smpl2 = 4*sample[1], smpl3 = 4*sample[2];
@@ -60,7 +59,7 @@ public:
         A_ptr[3] = (v1*y2 - v2*y1 - v1*y3 + v3*y1 + v2*y3 - v3*y2)/(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2);
         A_ptr[4] = -(v1*x2 - v2*x1 - v1*x3 + v3*x1 + v2*x3 - v3*x2)/(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2);
         A_ptr[5] = (v1*x2*y3 - v1*x3*y2 - v2*x1*y3 + v2*x3*y1 + v3*x1*y2 - v3*x2*y1)/(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2);
-        models[0]->setDescriptor(A);
+        models[0].setDescriptor(A);
         return 1;
     }
 

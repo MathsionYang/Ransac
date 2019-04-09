@@ -85,10 +85,7 @@ public:
     }
 
     static std::string getComputerInfo () {
-        return "RAM 15.6 GB\n"
-               "Intel Core i7\n"
-               "OS type 64 bit\n"
-               "8 CPUs\n";
+        return "";
     }
     /*
      * Display average results such as computational time,
@@ -109,6 +106,10 @@ public:
 //        std::cout << "GC " << model->GraphCutLO << "\n";
 //        std::cout << "SPRT " << model->Sprt << "\n";
 //        std::cout << N << " times \n";
+        
+        Estimator * estimator;
+        initEstimator(estimator, model->estimator, points);
+                
 
         std::vector<long> times(N);
         std::vector<float> num_inlierss(N);
@@ -147,6 +148,7 @@ public:
         // time and average error.
         // If we have GT number of inliers, then find number of fails model.
         for (int i = 0; i < N; i++) {
+//            std::cout << "i = " << i << "\n";
             Ransac ransac (model, points);
             ransac.run();
             RansacOutput ransacOutput = *ransac.getRansacOutput();
@@ -167,10 +169,7 @@ public:
             num_lo_iters = ransacOutput.getNUmberOfLOIterarations();
 
             if (GT) {
-                Estimator * estimator;
-                initEstimator(estimator, model->estimator, points);
                 float error = Quality::getErrorToGTInliers(estimator, ransacOutput.getModel()->returnDescriptor(), gt_inliers);
-
                 errors += error;
                 errorss[i] = error;
 
@@ -250,7 +249,7 @@ public:
         }
         results.worst_case_num_inliers = num_inlierss[0];
 
-        // Calcualte median of results for N is even
+        // Calculate median of results for N is even
         results.median_time_mcs = (times[N/2-1] + times[N/2])/2;
         results.median_num_inliers = (num_inlierss[N/2-1] + num_inlierss[N/2])/2;
         results.median_num_iters = (num_iterss[N/2-1] + num_iterss[N/2])/2;
@@ -264,6 +263,7 @@ public:
         if (get_results) {
             statistical_results->copyFrom(&results);
         }
+        delete (estimator);
     }
 
     static void testOpenCV (const cv::Mat &points, Model * model, const std::vector<int> &gt_inliers,
@@ -271,8 +271,6 @@ public:
         cv::Mat_<float> m;
         Estimator * estimator;
         initEstimator(estimator, model->estimator, points);
-//        estimator = new HomographyEstimator(points);
-//        estimator = new EssentialEstimator(points);
 
         float errors = 0, time = 0;
         for (unsigned int run = 0; run < N_runs; run++) {
@@ -300,6 +298,7 @@ public:
 
         *avg_err = errors / N_runs;
         *avg_time = time / N_runs;
+        delete (estimator);
     }
 
     //todo add functions for storeResults () and showResults

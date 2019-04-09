@@ -34,6 +34,10 @@ public:
         score = score_to_copy->score;
         inlier_number = score_to_copy->inlier_number;
     }
+    void copyFrom (const Score &score_to_copy) {
+        score = score_to_copy.score;
+        inlier_number = score_to_copy.inlier_number;
+    }
 };
 
 

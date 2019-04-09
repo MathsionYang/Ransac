@@ -32,12 +32,12 @@ void Tests::testNeighborsSearchCell () {
     std::cout << "cell size | total avg time | total avg error\n";
 
     for (int cell_size = 20; cell_size <= 100; cell_size += 1) {
-//        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
-        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
-        model->lo = LocOpt ::GC;
-        model->setNeighborsType(NeighborsSearch::Grid);
-        model->setCellSize(cell_size);
-        model->ResetRandomGenerator(true);
+//      Model model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
+        Model model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        model.lo = LocOpt ::GC;
+        model.setNeighborsType(NeighborsSearch::Grid);
+        model.setCellSize(cell_size);
+        model.ResetRandomGenerator(true);
 
         int img = 0;
         float avg_error = 0, avg_time = 0;
@@ -46,12 +46,12 @@ void Tests::testNeighborsSearchCell () {
 
 //            std::cout << img_name << "\n";
 
-            StatisticalResults * statistical_results = new StatisticalResults;
-                Tests::getStatisticalResults(points_imgs[img], model, N_runs,
-                                            true, gt_inliers[img], true, statistical_results);
+            StatisticalResults statistical_results;
+                Tests::getStatisticalResults(points_imgs[img], &model, N_runs,
+                                            true, gt_inliers[img], true, &statistical_results);
 
-            avg_error += statistical_results->avg_avg_error;
-            avg_time += statistical_results->avg_time_mcs;
+            avg_error += statistical_results.avg_avg_error;
+            avg_time += statistical_results.avg_time_mcs;
 
             img++;
         }
@@ -98,12 +98,12 @@ void Tests::testNeighborsSearch () {
     for (NeighborsSearch neighborsSearch : neighbors_searches) {
         std::cout << nearestNeighbors2string (neighborsSearch) << "\n";
 
-        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
-//        Model *model = new Model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
-        model->lo = LocOpt ::GC;
-        model->setNeighborsType(neighborsSearch);
-        model->setCellSize(50);
-        model->ResetRandomGenerator(true);
+        Model model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Uniform);
+//      Model model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+        model.lo = LocOpt ::GC;
+        model.setNeighborsType(neighborsSearch);
+        model.setCellSize(50);
+        model.ResetRandomGenerator(true);
 
         int img = 0;
         float avg_error = 0;
@@ -114,20 +114,20 @@ void Tests::testNeighborsSearch () {
 
             std::cout << img_name << "\n";
 
-            StatisticalResults * statistical_results = new StatisticalResults;
-            Tests::getStatisticalResults(points_imgs[img], model, N_runs,
-                                        true, gt_inliers[img], true, statistical_results);
+            StatisticalResults statistical_results;
+            Tests::getStatisticalResults(points_imgs[img], &model, N_runs,
+                                        true, gt_inliers[img], true, &statistical_results);
 
-            avg_error += statistical_results->avg_avg_error;
-            worst_case_err += statistical_results->worst_case_error;
-            avg_time += statistical_results->avg_time_mcs;
+            avg_error += statistical_results.avg_avg_error;
+            worst_case_err += statistical_results.worst_case_error;
+            avg_time += statistical_results.avg_time_mcs;
 
-            res[ns].push_back(statistical_results->avg_avg_error);
-            res[ns].push_back(statistical_results->worst_case_error);
-            res[ns].push_back(statistical_results->avg_time_mcs);
-            std::cout << statistical_results->avg_avg_error << " ";
-            std::cout << statistical_results->worst_case_error << " ";
-            std::cout << statistical_results->avg_time_mcs << "\n";
+            res[ns].push_back(statistical_results.avg_avg_error);
+            res[ns].push_back(statistical_results.worst_case_error);
+            res[ns].push_back(statistical_results.avg_time_mcs);
+            std::cout << statistical_results.avg_avg_error << " ";
+            std::cout << statistical_results.worst_case_error << " ";
+            std::cout << statistical_results.avg_time_mcs << "\n";
 
             img++;
         }

@@ -5,17 +5,17 @@
 
 int main (int args, char ** argv) {
 
-	Drawing::drawPointsByScore(DATASET::Homogr_SIFT, "graf");
+//	Drawing::drawPointsByScore(DATASET::Homogr_SIFT, "graf");
 
 //     run tests
 //     Tests::testLineFitting();
-    // Tests::testHomographyFitting();
-    // Tests::testFundamentalFitting();
+//     Tests::testHomographyFitting();
+     Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
      // Tests::testAffineFitting();
 	// Tests::testDensityProsac();
 	// Tests::testDensityOptimalKnn();
 	// Tests::testNeighborsSearchCell();
-	
+
 	return 0;
 }

@@ -15,7 +15,7 @@ private:
     Estimator * estimator;
     Quality * quality;
     Model * irls_model;
-    UniformRandomGenerator * uniformRandomGenerator;
+    UniformRandomGenerator uniformRandomGenerator;
     Score * irls_score;
 
     float * weights;
@@ -24,8 +24,8 @@ private:
     float threshold;
 
 public:
-    ~Irls() {
-        delete[] weights; delete[] inliers; delete[] sample; delete[] uniformRandomGenerator;
+    ~Irls() override {
+        delete[] weights; delete[] inliers; delete[] sample;
         delete(irls_model); delete(irls_score);
     }
 
@@ -43,9 +43,8 @@ public:
         irls_model = new Model (model);
         irls_score = new Score;
 
-        uniformRandomGenerator = new UniformRandomGenerator;
         if (model->reset_random_generator) {
-            uniformRandomGenerator->resetTime();
+            uniformRandomGenerator.resetTime();
         }
 
     }
@@ -80,9 +79,9 @@ public:
                 return;
 
             unsigned int num_samples = std::min(max_sample_size, num_inliers);
-            uniformRandomGenerator->setSubsetSize(num_samples);
-            uniformRandomGenerator->resetGenerator(0, num_inliers-1);
-            uniformRandomGenerator->generateUniqueRandomSet(sample);
+            uniformRandomGenerator.setSubsetSize(num_samples);
+            uniformRandomGenerator.resetGenerator(0, num_inliers-1);
+            uniformRandomGenerator.generateUniqueRandomSet(sample);
 
             for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
                 sample[smpl] = inliers[sample[smpl]];

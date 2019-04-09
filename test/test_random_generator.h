@@ -10,20 +10,20 @@ void checkUnique (RandomGenerator * random_generator, int size, const std::strin
 void checkReset (RandomGenerator * random_generator, const std::string& name);
 
 void evaluateRandomGenerators () {
-    RandomGenerator * array_random_generator = new ArrayRandomGenerator;
-    RandomGenerator * uniform_random_generator = new UniformRandomGenerator;
+    ArrayRandomGenerator array_random_generator;
+    UniformRandomGenerator uniform_random_generator;
 
-    checkReset (array_random_generator, "array");
-    checkUnique (array_random_generator, 20, "array");
+    checkReset (&array_random_generator, "array");
+    checkUnique (&array_random_generator, 20, "array");
     // return;
 
     int size = 10000;
     int uniques_set_size = 200;
-    calculateEntropy (array_random_generator, size, "array");
-    getAverageTime (array_random_generator, size, uniques_set_size, "array");
+    calculateEntropy (&array_random_generator, size, "array");
+    getAverageTime (&array_random_generator, size, uniques_set_size, "array");
 
-    calculateEntropy (uniform_random_generator, size, "shuffle");
-    getAverageTime (uniform_random_generator, size, uniques_set_size, "shuffle");
+    calculateEntropy (&uniform_random_generator, size, "shuffle");
+    getAverageTime (&uniform_random_generator, size, uniques_set_size, "shuffle");
 }
 
 void checkReset (RandomGenerator * random_generator, const std::string& name) {
@@ -35,8 +35,7 @@ void checkReset (RandomGenerator * random_generator, const std::string& name) {
     
     for (int i = 0; i < size1/2; i++) {
         random_generator->getRandomNumber();
-    }    
-
+    }
 
     random_generator->resetGenerator(0, size2);
     std::vector<int> histogram(size2+1, 0);
@@ -137,7 +136,7 @@ void getAverageTime (RandomGenerator * random_generator, int size, int unique_se
     random_generator->resetGenerator(0, size);
     random_generator->setSubsetSize(unique_set_size);
 
-    int * sample = new int [unique_set_size];
+    std::vector<int> sample (unique_set_size);
 
     begin_time = std::chrono::steady_clock::now();
     for (int i = 0; i < size; i++) {

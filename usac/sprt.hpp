@@ -71,7 +71,7 @@ private:
 
     double t_M, m_S, threshold, confidence;
     unsigned int points_size, sample_size, max_iterations, random_pool_idx;
-    std::vector<SPRT_history*> sprt_histories;
+    std::vector<SPRT_history> sprt_histories;
 
     Estimator * estimator;
 
@@ -107,14 +107,13 @@ public:
         random_pool_idx = 0;
         //
 
-        sprt_histories = std::vector<SPRT_history*>();
-        sprt_histories.push_back(new SPRT_history);
+        sprt_histories = std::vector<SPRT_history>(1);
         estimator = estimator_;
 
         if (model->estimator == ESTIMATOR::Homography) {
             // t_M = 200, m_S = 1, delta0 = 0.01, epsilon0 = 0.1;
-            sprt_histories[0]->delta = 0.01;
-            sprt_histories[0]->epsilon = 0.1;
+            sprt_histories[0].delta = 0.01;
+            sprt_histories[0].epsilon = 0.1;
 
             // time t_M needed to instantiate a model hypotheses given a sample
             t_M = 200;
@@ -122,14 +121,14 @@ public:
             m_S = 1;
         } else if (model->estimator == ESTIMATOR::Fundamental) {
             // t_M = 200, m_S = 2.48, delta0 = 0.05, epsilon0 = 0.2;
-            sprt_histories[0]->delta = 0.05;
-            sprt_histories[0]->epsilon = 0.2;
+            sprt_histories[0].delta = 0.05;
+            sprt_histories[0].epsilon = 0.2;
             t_M = 200;
             m_S = 2.48;
         } else if (model->estimator == ESTIMATOR::Essential) {
             // ??????????????????????????????????????????????
-            sprt_histories[0]->delta = 0.05;
-            sprt_histories[0]->epsilon = 0.2;
+            sprt_histories[0].delta = 0.05;
+            sprt_histories[0].epsilon = 0.2;
             t_M = 300;
             m_S = 4; // up to 10 models
         } else if (model->estimator == ESTIMATOR::Line2d){
@@ -143,13 +142,13 @@ public:
              * the search window). Alternatively, a few models can be evaluated
              * without applying SPRT in order to obtain an initial estimate of δ.
              */
-            sprt_histories[0]->delta = 0.0001; // ???
+            sprt_histories[0].delta = 0.0001; // ???
 
             /*
              * The initial value of ε0 can be derived from the maximal time the
              * user is willing to allocate to the algorithm.
              */
-            sprt_histories[0]->epsilon = 0.001; // ???
+            sprt_histories[0].epsilon = 0.001; // ???
 
         } else {
             std::cout << "UNDEFINED ESTIMATOR\n";
@@ -165,8 +164,8 @@ public:
         max_iterations = model->max_iterations;
         points_size = points_size_;
 
-        sprt_histories[0]->A = estimateThresholdA(sprt_histories[0]->epsilon, sprt_histories[0]->delta);
-        sprt_histories[0]->k = 0;
+        sprt_histories[0].A = estimateThresholdA(sprt_histories[0].epsilon, sprt_histories[0].delta);
+        sprt_histories[0].k = 0;
 
         number_rejected_models = 0;
         sum_fraction_data_points = 0;
@@ -193,9 +192,9 @@ public:
 
         estimator->setModelParameters(model->returnDescriptor());
 
-        double epsilon = sprt_histories[current_sprt_idx]->epsilon;
-        double delta = sprt_histories[current_sprt_idx]->delta;
-        double A = sprt_histories[current_sprt_idx]->A;
+        double epsilon = sprt_histories[current_sprt_idx].epsilon;
+        double delta = sprt_histories[current_sprt_idx].delta;
+        double A = sprt_histories[current_sprt_idx].A;
 
 //         std::cout << "epsilon = " << epsilon << "\n";
 //         std::cout << "delta =  " << delta << "\n";
@@ -264,18 +263,18 @@ public:
              * Store the current model parameters θ
              */
             if (tested_inliers > maximum_score) {
-                auto * new_sprt_history = new SPRT_history;
+                SPRT_history new_sprt_history;
 //                 std::cout << "UPDATE. GOOD MODEL\n";
 
-                new_sprt_history->epsilon = (float) tested_inliers / points_size;
+                new_sprt_history.epsilon = (float) tested_inliers / points_size;
 
-                new_sprt_history->delta = delta;
-                new_sprt_history->A = estimateThresholdA (new_sprt_history->epsilon, delta);
+                new_sprt_history.delta = delta;
+                new_sprt_history.A = estimateThresholdA (new_sprt_history.epsilon, delta);
 
-//                 new_sprt_history->delta = delta_estimated;
-//                 new_sprt_history->A = estimateThresholdA (new_sprt_history->epsilon, delta_estimated);
+//                 new_sprt_history.delta = delta_estimated;
+//                 new_sprt_history.A = estimateThresholdA (new_sprt_history.epsilon, delta_estimated);
 
-                new_sprt_history->k = current_hypothese - last_sprt_update;
+                new_sprt_history.k = current_hypothese - last_sprt_update;
                 last_sprt_update = current_hypothese;
                 current_sprt_idx++;
                 sprt_histories.push_back(new_sprt_history);
@@ -296,7 +295,7 @@ public:
 
 //             std::cout << delta_estimated << " = delta est\n";
             if (delta_estimated > 0 && fabs(delta - delta_estimated) / delta > 0.05) {
-                auto * new_sprt_history = new SPRT_history;
+                SPRT_history new_sprt_history;
 //                std::cout << "UPDATE. BAD MODEL\n";
 
                 /*
@@ -304,10 +303,10 @@ public:
                 * from δi by more than 5% design (i+1)-th test (εi+1 = εi,
                 * δi+1 = δˆ, i = i + 1)
                 */
-                new_sprt_history->epsilon = epsilon;
-                new_sprt_history->delta = delta_estimated;
-                new_sprt_history->A = estimateThresholdA(epsilon, delta_estimated);
-                new_sprt_history->k = current_hypothese - last_sprt_update;
+                new_sprt_history.epsilon = epsilon;
+                new_sprt_history.delta = delta_estimated;
+                new_sprt_history.A = estimateThresholdA(epsilon, delta_estimated);
+                new_sprt_history.k = current_hypothese - last_sprt_update;
                 last_sprt_update = current_hypothese;
                 current_sprt_idx++;
                 sprt_histories.push_back(new_sprt_history);
@@ -374,19 +373,19 @@ public:
         double log_eta_l_1 = 0;
         double h;
         for (unsigned int test = 0; test < current_sprt_idx; test++) {
-            h = computeExponentH(sprt_histories[test]->epsilon, epsilon, sprt_histories[test]->delta);
-            log_eta_l_1 += log (1 - P_g * (1 - pow (sprt_histories[test]->A, -h))) * sprt_histories[test]->k;
+            h = computeExponentH(sprt_histories[test].epsilon, epsilon, sprt_histories[test].delta);
+            log_eta_l_1 += log (1 - P_g * (1 - pow (sprt_histories[test].A, -h))) * sprt_histories[test].k;
         }
 //         std::cout << n_l_1 << "\n";
         double numerator = LOG_ETA_0 - log_eta_l_1;
 //         std::cout << numerator << " = numerator\n";
         if (numerator >= 0) return 0;
-        double denumerator = log (1 - P_g * (1 - 1/sprt_histories[current_sprt_idx]->A));
+        double denumerator = log (1 - P_g * (1 - 1/sprt_histories[current_sprt_idx].A));
 //         std::cout << denumerator << " = denumerator\n";
         if (std::isnan(denumerator) || fabs (denumerator) < 0.00001)
             return max_iterations;
 
-//         std::cout << log (1 - P_g/sprt_histories[current_sprt_idx]->A) << " down\n";
+//         std::cout << log (1 - P_g/sprt_histories[current_sprt_idx].A) << " down\n";
         double kl = numerator / denumerator;
 //         std::cout << kl << " = kl\n";
         return (unsigned int) std::min ((unsigned int)kl , max_iterations);
@@ -415,13 +414,13 @@ public:
         }
 
         for (unsigned int test = 0; test < current_sprt_idx; test++) {
-            k += sprt_histories[test]->k;
-            h = computeExponentH(new_eps, sprt_histories[test]->epsilon, sprt_histories[test]->delta);
-            prob_reject_good_model = 1/(exp( h*log(sprt_histories[test]->A) ));
-            log_eta += (double) sprt_histories[test]->k * log( 1 - prob_good_model*(1-prob_reject_good_model) );
+            k += sprt_histories[test].k;
+            h = computeExponentH(new_eps, sprt_histories[test].epsilon, sprt_histories[test].delta);
+            prob_reject_good_model = 1/(exp( h*log(sprt_histories[test].A) ));
+            log_eta += (double) sprt_histories[test].k * log( 1 - prob_good_model*(1-prob_reject_good_model) );
         }
 
-        double nusample_s = k + ( log(1-confidence) - log_eta ) / log( 1-prob_good_model * (1-(1/sprt_histories[current_sprt_idx]->A)) );
+        double nusample_s = k + ( log(1-confidence) - log_eta ) / log( 1-prob_good_model * (1-(1/sprt_histories[current_sprt_idx].A)) );
         return (unsigned int) ceil(nusample_s);
     }
     //-----------------------------

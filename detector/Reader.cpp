@@ -130,8 +130,8 @@ void Reader::getMatrix3x3 (const std::string &filename, cv::Mat &model) {
     model = cv::Mat_<float>(3,3);
     std::fstream file(filename, std::ios_base::in);
     if (! file.is_open()) {
-        std::cout << "Wrong direction to matrix file!\n";
-        exit (0);
+        std::cout << "Wrong direction to matrix file! Reader\n";
+        exit (1);
     }
 
     float val;
@@ -143,8 +143,6 @@ void Reader::getMatrix3x3 (const std::string &filename, cv::Mat &model) {
     }
 
 }
-
-
 
 bool Reader::SavePointsToFile(const cv::Mat &points, const char* file, std::vector<int> *inliers) {
     std::ofstream outfile(file, std::ios::out);
@@ -274,8 +272,8 @@ void Reader::readProjectionMatrix (cv::Mat &P, const std::string &filename) {
     std::fstream file(filename, std::ios_base::in);
 
     if (! file.is_open()) {
-        std::cout << "Wrong direction to Projection matrix file!\n";
-        exit (0);
+        std::cout << "Wrong direction to Projection matrix file! Reader\n";
+        exit (1);
     }
 
     float val;
@@ -293,7 +291,7 @@ void Reader::readInliers (std::vector<int>&inliers, const std::string &filename)
 
     if (! file.is_open()) {
         std::cout << "Wrong direction to inliers file, probably for Strecha dataset. Reader::readInliers!\n";
-        exit (0);
+        exit (1);
     }
     int num_inliers;
     file >> num_inliers;

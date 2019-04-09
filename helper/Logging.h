@@ -14,7 +14,7 @@ public:
     /*
      * Save results to file
      */
-    static void saveResult (Model * const model, RansacOutput * const ransacOutput) {
+    static void saveResult (const Model * const model, RansacOutput * const ransacOutput) {
         std::ofstream write_log;
         std::string filename = "../results/" + Tests::sampler2string(model->sampler)+"_"+
                 Tests::estimator2string(model->estimator)+".txt";
@@ -28,7 +28,7 @@ public:
     /*
      * Read results from saved file and compare with current results.
      */
-    static void compare (Model * const model, RansacOutput * const ransacOutput) {
+    static void compare (const Model * const model, RansacOutput * const ransacOutput) {
         std::ifstream read_log;
         std::string filename = "../results/" + Tests::sampler2string(model->sampler)+"_"+
                                                Tests::estimator2string(model->estimator) +".txt";
@@ -44,7 +44,7 @@ public:
         std::cout << "points under threshold more on " << ((int)ransacOutput->getNumberOfInliers() - points_under_treshold) << "\n";
     }
 
-    static void saveHeadOfCSV (std::ofstream &file, Model * model, int N_runs) {
+    static void saveHeadOfCSV (std::ofstream &file, const Model * const model, int N_runs) {
         file << Tests::getComputerInfo();
         file << Tests::sampler2string(model->sampler)+"_"+
                 Tests::estimator2string(model->estimator) << "\n";

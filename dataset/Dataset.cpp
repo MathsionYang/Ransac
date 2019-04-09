@@ -1,3 +1,4 @@
+#include <set>
 #include "Dataset.h"
 
 void Dataset::saveDatasetToFiles () {
@@ -96,9 +97,8 @@ std::vector<std::string> Dataset::getStrechaDataset (int num_imgs, bool reset_ti
     std::fstream file ("../../MVS/zdataset.txt");
     if (! file.is_open()) {
         std::cout << "can read images for Strecha dataset!\n";
-        exit (0);
+        exit (1);
     }
-
 
     std::string name;
     while (file >> name) {
@@ -107,19 +107,26 @@ std::vector<std::string> Dataset::getStrechaDataset (int num_imgs, bool reset_ti
     if (num_imgs == 0 || num_imgs >= fnames.size()) return fnames;
 
     if (reset_time) srand (time(NULL));
-    std::vector<std::string> random_imgs (num_imgs);
+    std::set<int> numbers;
     std::vector<int> used_imgs (num_imgs);
-
-    for (int i = 0; i < num_imgs; i++) {
-        used_imgs[i] = random () % fnames.size();
-        random_imgs[i] = fnames[used_imgs[i]];
-        for (int j = i-1; j >= 0; j--) {
-            if (used_imgs[i] == used_imgs[j]) {
-                i--;
-                break;
-            }
-        }
+    while (numbers.size() < num_imgs) {
+        numbers.insert((int) random() % fnames.size());
     }
+    std::vector<std::string> random_imgs (num_imgs);
+    for (int i = 0; i < num_imgs; i++) {
+        random_imgs[i] = fnames[used_imgs[i]];
+    }
+
+//    for (int i = 0; i < num_imgs; i++) {
+//        used_imgs[i] = random () % fnames.size();
+//        random_imgs[i] = fnames[used_imgs[i]];
+//        for (int j = i-1; j >= 0; j--) {
+//            if (used_imgs[i] == used_imgs[j]) {
+//                i--;
+//                break;
+//            }
+//        }
+//    }
 
     return random_imgs;
 }
