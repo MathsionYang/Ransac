@@ -20,8 +20,8 @@ class InnerLocalOptimization : public LocalOptimization {
 private:
     Quality * quality;
     Estimator * estimator;
-    Score * lo_score;
-    Model * lo_model;
+    Score lo_score;
+    Model lo_model;
     UniformRandomGenerator uniform_random_generator;
     IterativeLocalOptimization * iterativeLocalOptimization;
 
@@ -33,10 +33,11 @@ public:
 
     ~InnerLocalOptimization () override {
         delete[] lo_inliers; delete[] lo_sample; delete[] max_inliers;
-        delete (lo_score); delete (lo_model); delete (iterativeLocalOptimization);
+        delete (iterativeLocalOptimization);
     }
 
-    InnerLocalOptimization (Model *model, Estimator *estimator_, Quality *quality_, unsigned int points_size) {
+    InnerLocalOptimization (Model *model, Estimator *estimator_, Quality *quality_, unsigned int points_size)
+    : lo_model (model) {
 
         estimator = estimator_;
         quality = quality_;
@@ -48,9 +49,6 @@ public:
         lo_inliers = new int [points_size];
         max_inliers = new int [points_size];
         lo_sample = new int [sample_limit];
-
-        lo_score = new Score;
-        lo_model = new Model (model);
 
         // ------------- set random generator --------------
         uniform_random_generator.setSubsetSize(sample_limit);
@@ -88,29 +86,29 @@ public:
                     lo_sample[smpl] = max_inliers[lo_sample[smpl]];
                 }
             
-                if (!estimator->LeastSquaresFitting(lo_sample, sample_limit, *lo_model)) continue;
+                if (!estimator->LeastSquaresFitting(lo_sample, sample_limit, lo_model)) continue;
             } else {
                 // if inliers are less than limited number of sample then take all of them for estimation
                 // if it fails -> end Lo.
-                if (!estimator->LeastSquaresFitting(max_inliers, best_score->inlier_number, *lo_model)) return;
+                if (!estimator->LeastSquaresFitting(max_inliers, best_score->inlier_number, lo_model)) return;
             }
 
             // Start evaluating a model with new threshold. And get inliers for iterative lo ransac.
             // multiply threshold K * θ
-            lo_model->threshold = lo_model->lo_threshold_multiplier * lo_model->threshold;
-            quality->getNumberInliers(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
+            lo_model.threshold = lo_model.lo_threshold_multiplier * lo_model.threshold;
+            quality->getNumberInliers(&lo_score, lo_model.returnDescriptor(), lo_model.threshold, true, lo_inliers);
 
             // continue if there are not enough inliers for non minimal estimation
-            if (lo_score->inlier_number <= lo_model->sample_size) continue;
+            if (lo_score.inlier_number <= lo_model.sample_size) continue;
 
             // Iterative Ransac.
             bool fail;
             if (limited) {
                 // fixing locally optimized ransac: with limited samples.
-                fail = iterativeLocalOptimization->GetScoreLimited(lo_score, lo_model, lo_inliers);
+                fail = iterativeLocalOptimization->GetScoreLimited(&lo_score, &lo_model, lo_inliers);
             } else {
                 // unlimited iterative lo
-                fail = iterativeLocalOptimization->GetScoreUnlimited(lo_score, lo_model, best_score, lo_inliers);
+                fail = iterativeLocalOptimization->GetScoreUnlimited(&lo_score, &lo_model, best_score, lo_inliers);
             }
 
             // only for test
@@ -118,11 +116,11 @@ public:
             //
 
             // update best model
-            if (!fail && lo_score->bigger(best_score)) {
-                best_model->setDescriptor(lo_model->returnDescriptor());
+            if (!fail && lo_score.bigger(best_score)) {
+                best_model->setDescriptor(lo_model.returnDescriptor());
                 best_score->copyFrom(lo_score);
                 //copy inliers to max inliers for sampling from the best model.
-                std::copy(lo_inliers, lo_inliers + lo_score->inlier_number, max_inliers);
+                std::copy(lo_inliers, lo_inliers + lo_score.inlier_number, max_inliers);
             }
 
             // only for test

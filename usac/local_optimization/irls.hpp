@@ -14,9 +14,9 @@ class Irls : public LocalOptimization {
 private:
     Estimator * estimator;
     Quality * quality;
-    Model * irls_model;
+    Model irls_model;
     UniformRandomGenerator uniformRandomGenerator;
-    Score * irls_score;
+    Score irls_score;
 
     float * weights;
     int *inliers, *sample;
@@ -26,10 +26,9 @@ private:
 public:
     ~Irls() override {
         delete[] weights; delete[] inliers; delete[] sample;
-        delete(irls_model); delete(irls_score);
     }
 
-    Irls (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) {
+    Irls (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) : irls_model (model){
         max_sample_size = model->lo_sample_size;
     
         weights = new float[points_size_];
@@ -40,8 +39,6 @@ public:
         estimator = estimator_;
         points_size = points_size_;
         threshold = model->threshold;
-        irls_model = new Model (model);
-        irls_score = new Score;
 
         if (model->reset_random_generator) {
             uniformRandomGenerator.resetTime();
@@ -50,10 +47,10 @@ public:
     }
 
     void GetModelScore (Model * model, Score * score) override {
-        irls_model->setDescriptor(model->returnDescriptor());
+        irls_model.setDescriptor(model->returnDescriptor());
 
         for (unsigned int iter = 1; iter < 20; iter++) {
-            estimator->setModelParameters(irls_model->returnDescriptor());
+            estimator->setModelParameters(irls_model.returnDescriptor());
 
             unsigned int num_inliers = 0;
 
@@ -93,28 +90,28 @@ public:
                 std::cout << "UPDATE SCORE\n";
                 score->inlier_number = num_inliers;
                 score->score = num_inliers;
-                model->setDescriptor(irls_model->returnDescriptor());
+                model->setDescriptor(irls_model.returnDescriptor());
             }
 
             // debug
-            Model * r_model = new Model (model);
-            Score * r_score = new Score;
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, *r_model);
-            quality->getNumberInliers(r_score, r_model->returnDescriptor(), r_model->threshold);
-            std::cout << "irls score without weights " << r_score->inlier_number << "\n";
+            Model r_model(model);
+            Score r_score;
+            estimator->EstimateModelNonMinimalSample(sample, num_samples, r_model);
+            quality->getNumberInliers(&r_score, r_model.returnDescriptor(), r_model.threshold);
+            std::cout << "irls score without weights " << r_score.inlier_number << "\n";
             // -----c
 
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, weights, *irls_model);
+            estimator->EstimateModelNonMinimalSample(sample, num_samples, weights, irls_model);
 
         }
 
-        quality->getNumberInliers(irls_score, irls_model->returnDescriptor());
-        std::cout << "irls iteration 20; inliers size " << irls_score->inlier_number << "\n";
+        quality->getNumberInliers(&irls_score, irls_model.returnDescriptor());
+        std::cout << "irls iteration 20; inliers size " << irls_score.inlier_number << "\n";
 
-        if (irls_score->bigger(score)) {
+        if (irls_score.bigger(score)) {
             std::cout << "UPDATE SCORE\n";
             score->copyFrom(irls_score);
-            model->setDescriptor(irls_model->returnDescriptor());
+            model->setDescriptor(irls_model.returnDescriptor());
         }
         std::cout << "-----------------------------------------------\n";
     }

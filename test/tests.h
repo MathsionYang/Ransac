@@ -109,7 +109,6 @@ public:
         
         Estimator * estimator;
         initEstimator(estimator, model->estimator, points);
-                
 
         std::vector<long> times(N);
         std::vector<float> num_inlierss(N);

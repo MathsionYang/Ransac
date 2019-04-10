@@ -28,7 +28,7 @@ public:
 bool DLT (const float * const points, unsigned int sample_number, cv::Mat &H);
 bool DLTEigen (const float * const points, unsigned int sample_number, cv::Mat &H);
 bool DLTLeastSquares (const float * const points, unsigned int sample_number, cv::Mat &H);
-
+bool DLTQR (const float * const points, unsigned int sample_number, cv::Mat &H);
 void GetNormalizingTransformation (const float * const pts, cv::Mat& norm_points,
                                    const int * const sample, unsigned int sample_number, cv::Mat &T1, cv::Mat &T2);
 

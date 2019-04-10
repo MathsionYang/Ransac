@@ -11,6 +11,7 @@ class Line2DEstimator : public Estimator {
 protected:
     float a,b,c;
     const float * const points;
+    unsigned int points_size;
 public:
 
     /*
@@ -21,6 +22,7 @@ public:
      */
     Line2DEstimator (cv::InputArray input_points) : points ((float *)input_points.getMat().data) {
         assert(!input_points.empty());
+        points_size = input_points.getMat().rows;
     }
 
     /*
@@ -149,10 +151,23 @@ public:
     }
 
     /*
-     * |ax + by + c|, where ||(a b)|| = 1
+     * |ax + by + c|, ||(a b)|| = 1
      */
     inline float GetError(unsigned int pidx) override {
         return fabsf (a * points[2*pidx] + b * points[2*pidx+1] + c);
+    }
+
+    unsigned int GetNumInliers (float threshold, bool get_inliers, int * inliers) override {
+        unsigned int num_inliers = 0;
+        for (unsigned int i = 0; i < points_size; i++) {
+            if (fabsf (a * points[2*i] + b * points[2*i+1] + c) < threshold) {
+                if (get_inliers) {
+                    inliers[num_inliers] = i;
+                }
+                num_inliers++;
+            }
+        }
+        return num_inliers;
     }
 
     int SampleNumber() override {

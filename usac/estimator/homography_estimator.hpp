@@ -92,7 +92,7 @@ public:
         return error;
     }
 
-    int GetNumInliers (float threshold, bool get_inliers, int * inliers) override {
+    unsigned int GetNumInliers (float threshold, bool get_inliers, int * inliers) override {
         float x1, y1, x2, y2, est_x2, est_y2, est_z2, error;
         unsigned int smpl;
         int num_inliers = 0;

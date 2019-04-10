@@ -27,12 +27,12 @@ public:
         std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
     }
 
-    virtual float GetError(unsigned int pidx) = 0;
-    virtual int GetNumInliers (float threshold, bool get_inliers=false, int * inliers=nullptr) { return 0; }
+    virtual inline float GetError(unsigned int pidx) = 0;
+    virtual unsigned int GetNumInliers (float threshold, bool get_inliers=false, int * inliers=nullptr) { return 0; }
     virtual void GetError(float * weights, float threshold, int * inliers, unsigned int * inliers_size) {
         std::cout << "NOT IMPLEMENTED GetError (float * weights) in estimator\n";
     }
-    virtual int SampleNumber() = 0;
+    virtual inline int SampleNumber() = 0;
 
     virtual void setModelParameters (const cv::Mat& model) = 0;
 
