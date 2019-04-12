@@ -12,7 +12,10 @@
  */
 void Reader::read_points (cv::Mat &pts1, cv::Mat &pts2, const std::string &filename) {
     std::fstream file(filename, std::ios_base::in);
-
+    if (! file.is_open()) {
+        std::cout << "Wrong direction to file with points! Reader::read_points\n";
+        exit (1);
+    }
     float x1, y1, z1, x2, y2, z2, inl;
     cv::Mat tmp = cv::Mat_<float>(1, 2);
     float eps = 3;
@@ -57,6 +60,10 @@ void Reader::read_points (cv::Mat &pts1, cv::Mat &pts2, const std::string &filen
 
 void Reader::getPointsNby6 (const std::string& filename, cv::Mat &points) {
     std::fstream file(filename, std::ios_base::in);
+    if (! file.is_open()) {
+        std::cout << "Wrong direction to file with points! Reader::getPointsNby6\n";
+        exit (1);
+    }
 
     float x1, y1, z1, x2, y2, z2;
     cv::Mat tmp;
@@ -74,6 +81,10 @@ void Reader::getPointsNby6 (const std::string& filename, cv::Mat &points) {
  */
 void Reader::getInliers (const std::string &filename, std::vector<int> &inliers) {
     std::fstream file(filename, std::ios_base::in);
+    if (! file.is_open()) {
+        std::cout << "Wrong direction to file with inliers! Reader::getInliers\n";
+        exit (1);
+    }
     inliers.clear();
 
     cv::Mat tmp = cv::Mat_<float>(1, 2), pts1, pts2;
@@ -130,7 +141,7 @@ void Reader::getMatrix3x3 (const std::string &filename, cv::Mat &model) {
     model = cv::Mat_<float>(3,3);
     std::fstream file(filename, std::ios_base::in);
     if (! file.is_open()) {
-        std::cout << "Wrong direction to matrix file! Reader\n";
+        std::cout << "Wrong direction to matrix file! Reader::getMatrix3x3\n";
         exit (1);
     }
 
@@ -180,7 +191,10 @@ bool Reader::SavePointsToFile(const cv::Mat &points, const char* file, std::vect
 bool Reader::LoadPointsFromFile(cv::Mat &points, const char* file)
 {
     std::ifstream infile(file);
-
+    if (! infile.is_open()) {
+        std::cout << "Wrong direction to file with points! Reader::LoadPointsFromFile\n";
+        exit (1);
+    }
     if (!infile.is_open())
         return false;
 
@@ -216,6 +230,10 @@ bool Reader::LoadPointsFromFile(cv::Mat &points, const char* file)
  */
 void Reader::readEVDPointsInliers (cv::Mat &points, std::vector<int>&inliers, const std::string &filename) {
     std::fstream file(filename, std::ios_base::in);
+    if (! file.is_open()) {
+        std::cout << "Wrong direction to file with EVD points! Reader::readEVDPointsInliers\n";
+        exit (1);
+    }
     inliers.clear();
 
     float x1, y1, x2, y2;
@@ -272,7 +290,7 @@ void Reader::readProjectionMatrix (cv::Mat &P, const std::string &filename) {
     std::fstream file(filename, std::ios_base::in);
 
     if (! file.is_open()) {
-        std::cout << "Wrong direction to Projection matrix file! Reader\n";
+        std::cout << "Wrong direction to Projection matrix file! Reader::readProjectionMatrix\n";
         exit (1);
     }
 

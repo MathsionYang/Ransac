@@ -20,7 +20,7 @@ public:
     // range in closed interval <min; max>
     void resetGenerator (int min, int max) override {
         array_size = max - min + 1;
-        max = array_size;
+        this->max = array_size;
         array = new int[array_size];
         int k = 0;
         for (int i = min; i <= max; i++) {

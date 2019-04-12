@@ -41,7 +41,7 @@ public:
 
         lo_iterations = lo_iters;
 
-        splitTime(&time, time_mcs);
+        Math::splitTime(&time, time_mcs);
     }
 
     std::vector<int> getInliers() {

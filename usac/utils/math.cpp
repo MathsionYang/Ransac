@@ -8,7 +8,7 @@
  * Fast finding inverse matrix 3x3
  * A^-1 = adj(A)/det(A)
  */
-bool inverse3x3 (cv::Mat& A) {
+bool Math::inverse3x3 (cv::Mat& A) {
 //    assert (A.rows == 3 && A.cols == 3);
 
     float * A_ptr = (float *) A.data;
@@ -46,7 +46,7 @@ bool inverse3x3 (cv::Mat& A) {
     return true;
 }
 
-bool inverse3x3 (const cv::Mat& A, cv::Mat& A_inv){
+bool Math::inverse3x3 (const cv::Mat& A, cv::Mat& A_inv){
     A_inv = A.clone();
     inverse3x3(A_inv);
 }
@@ -60,7 +60,7 @@ bool inverse3x3 (const cv::Mat& A, cv::Mat& A_inv){
  * Assume that my pow is called for power at least 2.
  *
  */
-float fast_pow (float n, int k) {
+float Math::fast_pow (float n, int k) {
     float res = n * n;
     while (k > 2) {
         res *= n; k--;
@@ -68,7 +68,7 @@ float fast_pow (float n, int k) {
     return res;
 }
 
-int fast_factorial (int n) {
+int Math::fast_factorial (int n) {
     int res = n;
     while (n > 2) {
         res *= --n;
@@ -76,7 +76,47 @@ int fast_factorial (int n) {
     return res;
 }
 
-void splitTime (Time * time, long time_mcs) {
+
+/*
+ * @points Nx4 array: x1 y1 x2 y2
+ * @sample Mx1 array
+ */
+bool Math::haveCollinearPoints (const float * const points, const int * const sample, unsigned int sample_size) {
+    unsigned int last_pt_idx = 4*sample[sample_size-1];
+    float last_pt_x1 = points[last_pt_idx  ];
+    float last_pt_y1 = points[last_pt_idx+1];
+    float last_pt_x2 = points[last_pt_idx+2];
+    float last_pt_y2 = points[last_pt_idx+3];
+
+    // check that the last point does not belong
+    // to a line connecting some previously selected points
+    // also checks that points are not too close to each other
+    // Checks if no more than 2 points are on the same line
+    float dx1, dy1, dx2, dy2, dX1, dY1, dX2, dY2;
+    unsigned pt_idx;
+    for (unsigned int j = 0; j < sample_size-1; j++) {
+        pt_idx = 4*sample[j];
+        dx1 = points[pt_idx  ] - last_pt_x1; // x
+        dy1 = points[pt_idx+1] - last_pt_y1; // y
+        dX1 = points[pt_idx+2] - last_pt_x2; // x
+        dY1 = points[pt_idx+3] - last_pt_y2; // y
+
+        for (unsigned int k = 0; k < j; k++){
+            pt_idx = 4*sample[k];
+            dx2 = points[pt_idx  ] - last_pt_x1; // x
+            dy2 = points[pt_idx+1] - last_pt_y1; // y
+            dX2 = points[pt_idx+2] - last_pt_x2; // x
+            dY2 = points[pt_idx+3] - last_pt_y2; // y
+
+            if (fabsf(dx2*dy1 - dy2*dx1) <= FLT_EPSILON*(fabsf(dx1) + fabsf(dy1) + fabsf(dx2) + fabsf(dy2)) ||
+                fabsf(dX2*dY1 - dY2*dX1) <= FLT_EPSILON*(fabsf(dX1) + fabsf(dY1) + fabsf(dX2) + fabsf(dY2)))
+                return true;
+        }
+    }
+    return false;
+}
+
+void Math::splitTime (Time * time, long time_mcs) {
     time->microseconds = time_mcs % 1000;
     time->milliseconds = ((time_mcs - time->microseconds)/1000) % 1000;
     time->seconds = ((time_mcs - 1000*time->milliseconds - time->microseconds)/(1000*1000)) % 60;

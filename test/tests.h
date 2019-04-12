@@ -307,6 +307,7 @@ public:
 //
 //    }
 
+    static void run_all_tests ();
 };
 
 #endif //TESTS_TESTS_H

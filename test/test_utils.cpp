@@ -149,7 +149,7 @@ void Tests::testInv () {
 
     start = std::clock();
     for (int i = 0; i < test_size; i++) {
-        inverse3x3(A, A_inv);
+        Math::inverse3x3(A, A_inv);
     }
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     std::cout<< "duration: "<< duration <<'\n';

@@ -38,11 +38,11 @@ void Tests::testFundamentalFitting() {
 //    }
 
     // -------------------------- uniform -------------------------------------
-    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+//    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
     // ------------------------------------------------------------------------
 
 //     -------------------------- Prosac -------------------------------------
-//    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
+    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
     // ------------------------------------------------------------------------
 
     model.lo = LocOpt ::NullLO;
@@ -52,7 +52,7 @@ void Tests::testFundamentalFitting() {
     model.ResetRandomGenerator(false);
 
     if (model.sampler ==  SAMPLER::Prosac) {
-//        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
+        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, &model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
         test (points, &model, img_name, dataset, true, gt_inliers);

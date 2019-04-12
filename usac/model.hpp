@@ -98,7 +98,7 @@ public:
         lo_threshold_multiplier = lo_thresh_mult;
 	}
 
-    inline void setDescriptor(cv::Mat desc) {
+    inline void setDescriptor(const cv::Mat &desc) {
 //    	descriptor = desc;
         desc.copyTo(descriptor);
     }

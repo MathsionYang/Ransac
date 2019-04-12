@@ -61,6 +61,7 @@ add_executable(
         test/test_neighbors_search.cpp
         test/test_utils.cpp
         test/test_density_prosac.cpp
+        test/debug.cpp
 )
 
 # parallel

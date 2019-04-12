@@ -20,13 +20,17 @@ public:
     }
 };
 
-bool inverse3x3 (cv::Mat& A);
-bool inverse3x3 (const cv::Mat& A, cv::Mat& A_inv);
+class Math {
+public:
+    static bool inverse3x3 (cv::Mat& A);
+    static bool inverse3x3 (const cv::Mat& A, cv::Mat& A_inv);
 
-float fast_pow (float n, int k);
+    static float fast_pow (float n, int k);
 
-int fast_factorial (int n);
+    static int fast_factorial (int n);
 
-void splitTime (Time * time, long time_mcs);
+    static void splitTime (Time * time, long time_mcs);
+    static bool haveCollinearPoints (const float * const points, const int * const sample, unsigned int sample_size);
+};
 
 #endif //USAC_UTILS_MATH_H

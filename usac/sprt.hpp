@@ -131,7 +131,7 @@ public:
             sprt_histories[0].epsilon = 0.2;
             t_M = 300;
             m_S = 4; // up to 10 models
-        } else if (model->estimator == ESTIMATOR::Line2d){
+        } else if (model->estimator == ESTIMATOR::Line2d) {
             t_M = 100;
             m_S = 1;
             /*
@@ -149,7 +149,11 @@ public:
              * user is willing to allocate to the algorithm.
              */
             sprt_histories[0].epsilon = 0.001; // ???
-
+        } else if (model->estimator == ESTIMATOR::Affine) {
+            sprt_histories[0].delta = 0.01;
+            sprt_histories[0].epsilon = 0.1;
+            t_M = 150;
+            m_S = 1;
         } else {
             std::cout << "UNDEFINED ESTIMATOR\n";
             exit (111);

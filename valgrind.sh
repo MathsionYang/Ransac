@@ -1,1 +1,2 @@
-valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no build/ransac
+# https://www.cprogramming.com/debugging/valgrind.html
+valgrind --tool=memcheck --leak-check=yes --log-file="leaks.txt" ./ransac 

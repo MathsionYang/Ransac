@@ -27,6 +27,10 @@ public:
         std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
     }
 
+    virtual bool isSubsetGood (const int * const sample) {
+        return false;
+    }
+
     virtual inline float GetError(unsigned int pidx) = 0;
     virtual unsigned int GetNumInliers (float threshold, bool get_inliers=false, int * inliers=nullptr) { return 0; }
     virtual void GetError(float * weights, float threshold, int * inliers, unsigned int * inliers_size) {

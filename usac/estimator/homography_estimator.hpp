@@ -120,7 +120,41 @@ public:
         return num_inliers;
     }
 
+    bool isSubsetGood (const int * const sample) override {
+//        Mat ms1 = _ms1.getMat(), ms2 = _ms2.getMat();
+//        if( haveCollinearPoints(ms1, count) || haveCollinearPoints(ms2, count) )
+//            return false;
+//
+//        // We check whether the minimal set of points for the homography estimation
+//        // are geometrically consistent. We check if every 3 correspondences sets
+//        // fulfills the constraint.
+//        //
+//        // The usefullness of this constraint is explained in the paper:
+//        //
+//        // "Speeding-up homography estimation in mobile devices"
+//        // Journal of Real-Time Image Processing. 2013. DOI: 10.1007/s11554-012-0314-1
+//        // Pablo Marquez-Neila, Javier Lopez-Alberca, Jose M. Buenaposada, Luis Baumela
+//        if( count == 4 )
+//        {
+//            static const int tt[][3] = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 3}};
+//            const Point2f* src = ms1.ptr<Point2f>();
+//            const Point2f* dst = ms2.ptr<Point2f>();
+//            int negative = 0;
+//
+//            for( int i = 0; i < 4; i++ )
+//            {
+//                const int* t = tt[i];
+//                Matx33d A(src[t[0]].x, src[t[0]].y, 1., src[t[1]].x, src[t[1]].y, 1., src[t[2]].x, src[t[2]].y, 1.);
+//                Matx33d B(dst[t[0]].x, dst[t[0]].y, 1., dst[t[1]].x, dst[t[1]].y, 1., dst[t[2]].x, dst[t[2]].y, 1.);
+//
+//                negative += determinant(A)*determinant(B) < 0;
+//            }
+//            if( negative != 0 && negative != 4 )
+//                return false;
+//        }
 
+        return true;
+    };
     int SampleNumber() override {
         return 4;
     }

@@ -41,7 +41,7 @@ void Tests::test (cv::Mat points,
         time_mcs += nn_time;
     }
     Time time;
-    splitTime(&time, time_mcs);
+    Math::splitTime(&time, time_mcs);
     std::cout << &time;
     std::cout << "\tMain iterations: " << ransacOutput.getNumberOfMainIterations() << "\n";
     std::cout << "\tLO iterations: " << ransacOutput.getNUmberOfLOIterarations() << "\n";
@@ -56,6 +56,7 @@ void Tests::test (cv::Mat points,
         float error = Quality::getErrorToGTInliers(estimator, ransacOutput.getModel()->returnDescriptor(), gt_inliers);
         std::cout << "Ground Truth number of inliers for same model parametres is " << gt_inliers.size() << "\n";
         std::cout << "Error to GT inliers " << error << "\n";
+        delete (estimator);
     }
 
     // save result and compare with last run
