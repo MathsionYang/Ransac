@@ -17,18 +17,18 @@ void Ransac::run() {
     Score best_score, current_score;
 
     std::vector<Model> models;
-    models.emplace_back(model);
+    models.emplace_back(Model(model));
 
     // Allocate max size of models for fundamental matrix
     // estimation to avoid reallocation
     if (model->estimator == ESTIMATOR::Fundamental ) {
         // for fundamental matrix can be up to 3 solutions
-        models.emplace_back(model);
-        models.emplace_back(model);
+        models.emplace_back(Model(model));
+        models.emplace_back(Model(model));
     } else if (model->estimator == ESTIMATOR::Essential) {
         // for essential matrix can be up to 10 solutions
         for (int sol = 0; sol < 9; sol++) {
-            models.emplace_back(model);
+            models.emplace_back(Model(model));
         }
     }
 
@@ -70,6 +70,9 @@ void Ransac::run() {
             } else {
                  quality->getNumberInliers(&current_score, models[i].returnDescriptor());
             }
+//            std::cout << models[i].returnDescriptor() << " ransac\n";
+
+            std::cout << current_score.inlier_number << "\n";
             if (current_score.bigger(best_score)) {
 
                 // update current model and current score by inner and iterative local optimization
