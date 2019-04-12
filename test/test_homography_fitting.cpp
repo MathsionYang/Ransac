@@ -57,8 +57,8 @@ void Tests::testHomographyFitting() {
 //        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, model, 200, true, gt_sorted_inliers, false, nullptr);
     } else {
-//        test (points, &model, img_name, dataset, true, gt_inliers);
-       getStatisticalResults(points, &model, 50, true, gt_inliers, false, nullptr);
+        test (points, &model, img_name, dataset, true, gt_inliers);
+//       getStatisticalResults(points, &model, 50, true, gt_inliers, false, nullptr);
     }
 
 //    auto t = std::chrono::steady_clock::now();
