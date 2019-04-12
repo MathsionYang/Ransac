@@ -3,11 +3,59 @@
 // of this distribution and at http://opencv.org/license.html.
 
 #include "dlt.hpp"
-
-bool DLt::DLT4p (const int * const sample, cv::Mat &H) {
+bool DLt::DLT4pSVD (const int * const sample, cv::Mat &H) {
     float x1, y1, x2, y2;
     unsigned int smpl;
-    AtA = cv::Mat_<float> (9, 9, float (0));
+
+    cv::Mat_<float> A (8, 9), S, U, Vt;
+    auto * A_ptr = (float *) A.data;
+
+    for (unsigned int i = 0; i < 4; i++) {
+        smpl = 4*sample[i];
+        x1 = points[smpl];
+        y1 = points[smpl+1];
+
+        x2 = points[smpl+2];
+        y2 = points[smpl+3];
+
+        (*A_ptr++) = -x1;
+        (*A_ptr++) = -y1;
+        (*A_ptr++) = -1;
+        (*A_ptr++) = 0;
+        (*A_ptr++) = 0;
+        (*A_ptr++) = 0;
+        (*A_ptr++) = x2*x1;
+        (*A_ptr++) = x2*y1;
+        (*A_ptr++) = x2;
+
+        (*A_ptr++) = 0;
+        (*A_ptr++) = 0;
+        (*A_ptr++) = 0;
+        (*A_ptr++) = -x1;
+        (*A_ptr++) = -y1;
+        (*A_ptr++) = -1;
+        (*A_ptr++) = y2*x1;
+        (*A_ptr++) = y2*y1;
+        (*A_ptr++) = y2;
+    }
+
+    cv::SVD::compute(A, S, U, Vt);
+
+    if (Vt.empty ()) {
+        return false;
+    }
+
+    H = cv::Mat_<float>(Vt.row(Vt.rows-1).reshape (3,3));
+
+    return true;
+}
+
+bool DLt::DLT4p (const int * const sample, cv::Mat &H) {
+    return DLt::DLT4pSVD(sample, H);
+
+    float x1, y1, x2, y2;
+    unsigned int smpl;
+    AtA.setTo(cv::Scalar::all(0));
     float * AtA_ptr = (float *) AtA.data;
 
     for (int i = 0; i < 4; i++) {
@@ -54,8 +102,8 @@ bool DLt::DLT4p (const int * const sample, cv::Mat &H) {
     return true;
 }
 
-bool DLT (const float * const points, unsigned int sample_number, cv::Mat &H) {
 
+bool DLT (const float * const points, unsigned int sample_number, cv::Mat &H) {
     float x1, y1, x2, y2;
     unsigned int smpl;
 

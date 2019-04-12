@@ -45,18 +45,18 @@ void Tests::testFundamentalFitting() {
 //    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
     // ------------------------------------------------------------------------
 
-    model.lo = LocOpt ::GC;
+    model.lo = LocOpt ::NullLO;
     model.setSprt(0);
     model.setCellSize(50);
     model.setNeighborsType(NeighborsSearch::Grid);
     model.ResetRandomGenerator(false);
 
     if (model.sampler ==  SAMPLER::Prosac) {
-        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
+//        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
         // getStatisticalResults(sorted_points, &model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
-//        test (points, &model, img_name, dataset, true, gt_inliers);
-        getStatisticalResults(points, &model, 300, true, gt_inliers, false, nullptr);
+        test (points, &model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, &model, 300, true, gt_inliers, false, nullptr);
     }
 
 //    auto t = std::chrono::steady_clock::now();

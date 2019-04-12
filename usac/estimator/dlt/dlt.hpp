@@ -11,7 +11,7 @@
 // Direct Linear Transformation
 class DLt {
 private:
-    cv::Mat AtA, Vt, D;
+    cv::Mat Vt, D, AtA = cv::Mat_<float>(9,9);
     float a1[9] = {0, 0, -1, 0, 0, 0, 0, 0, 0}, a2[9] = {0, 0, 0, 0, 0, -1, 0, 0, 0};
     const float * const points;
 public:
@@ -19,6 +19,7 @@ public:
 
     // minimal
     bool DLT4p (const int * const sample, cv::Mat &H);
+    bool DLT4pSVD (const int * const sample, cv::Mat &H);
 
     bool NormalizedDLT (const int * const sample, unsigned int sample_number, cv::Mat &H);
     bool NormalizedDLT (const int * const sample, unsigned int sample_number, const float * const weights, cv::Mat &H);

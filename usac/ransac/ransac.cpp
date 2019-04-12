@@ -72,7 +72,7 @@ void Ransac::run() {
             }
 //            std::cout << models[i].returnDescriptor() << " ransac\n";
 
-            std::cout << current_score.inlier_number << "\n";
+//            std::cout << current_score.inlier_number << "\n";
             if (current_score.bigger(best_score)) {
 
                 // update current model and current score by inner and iterative local optimization
