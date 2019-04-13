@@ -12,13 +12,13 @@
 #include "local_optimization.hpp"
 #include "../sampler/uniform_sampler.hpp"
 #include "../random_generator/uniform_random_generator.hpp"
-
+#include "../quality/ransac_quality.hpp"
 
 class GraphCut : public LocalOptimization {
 protected:
     Estimator * estimator;
     Quality * quality;
-    Score gc_score;
+    RansacScore gc_score;
     Model gc_model;
     UniformRandomGenerator uniform_random_generator;
 
@@ -132,7 +132,7 @@ public:
                     }
                 }
 
-                quality->getNumberInliers(&gc_score, gc_model.returnDescriptor());
+                quality->getScore(&gc_score, gc_model.returnDescriptor());
 
                 if (gc_score.bigger(best_score)) {
                     is_best_model_updated = true;
@@ -156,7 +156,7 @@ private:
          * This LSQ must give better model for next GC labeling.
          */
         // use gc_score variable, but we are not getting gc score.
-        quality->getNumberInliers(&gc_score, model->returnDescriptor(), model->threshold, true, inliers);
+        quality->getScore(&gc_score, model->returnDescriptor(), model->threshold, true, inliers);
 
         // return if not enough inliers
         if (gc_score.inlier_number <= model->sample_size)

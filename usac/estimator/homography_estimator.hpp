@@ -7,6 +7,7 @@
 
 #include "estimator.hpp"
 #include "dlt/dlt.hpp"
+#include "../utils/math.hpp"
 
 class HomographyEstimator : public Estimator{
 private:
@@ -37,6 +38,10 @@ public:
     }
 
     unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
+//        if (! isSubsetGood(sample)){
+//            return 0;
+//        }
+
         cv::Mat H;
         if (! dlt.DLT4p (sample, H)) {
             return 0;
@@ -65,6 +70,79 @@ public:
 
         model.setDescriptor(H);
         return true;
+    }
+
+    bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, const float * const weightsx, const float * const weightsy, Model &model) override {
+        cv::Mat H;
+        if (! dlt.NormalizedDLT(sample, sample_size, weightsx, weightsy, H)) {
+            return false;
+        }
+
+        model.setDescriptor(H);
+        return true;
+    }
+
+    bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size,
+                                               const float * const weightsx1, const float * const weightsy1,
+                                               const float * const weightsx2, const float * const weightsy2, Model &model) override {
+        cv::Mat H;
+        if (! dlt.NormalizedDLT(sample, sample_size, weightsx1, weightsy1, weightsx2, weightsy2, H)) {
+            return false;
+        }
+
+        model.setDescriptor(H);
+        return true;
+    }
+
+    void getWeights (float * weights_euc1, float * weights_euc2, float * weights_manh1,
+                     float * weights_manh2, float * weights_manh3, float * weights_manh4) override {
+        cv::Mat H = (cv::Mat_<float>(3,3) << h11, h12, h13, h21, h22, h23, h31, h32, h33);
+        H = H.inv();
+        float * H_ptr = (float *) H.data;
+        float h_inv11, h_inv12, h_inv13, h_inv21, h_inv22, h_inv23, h_inv31, h_inv32, h_inv33;
+        h_inv11 = H_ptr[0]; h_inv12 = H_ptr[1]; h_inv13 = H_ptr[2];
+        h_inv21 = H_ptr[3]; h_inv22 = H_ptr[4]; h_inv23 = H_ptr[5];
+        h_inv31 = H_ptr[6]; h_inv32 = H_ptr[7]; h_inv33 = H_ptr[8];
+
+        float x1, y1, x2, y2, est_x2, est_y2, est_z2, est_x1, est_y1, est_z1, error;
+        unsigned int smpl;
+        for (unsigned int pt = 0; pt < points_size; pt++) {
+            smpl = 4*pt;
+            x1 = points[smpl];
+            y1 = points[smpl+1];
+            x2 = points[smpl+2];
+            y2 = points[smpl+3];
+
+            est_x2 = h11 * x1 + h12 * y1 + h13;
+            est_y2 = h21 * x1 + h22 * y1 + h23;
+            est_z2 = h31 * x1 + h32 * y1 + h33; // h33 = 1
+
+            est_x2 /= est_z2;
+            est_y2 /= est_z2;
+
+            est_x1 = h_inv11 * x2 + h_inv12 * y2 + h_inv13;
+            est_y1 = h_inv21 * x2 + h_inv22 * y2 + h_inv23;
+            est_z1 = h_inv31 * x2 + h_inv32 * y2 + h_inv33;
+
+            est_x1 /= est_z1;
+            est_y1 /= est_z1;
+
+            float euc1 = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
+            float euc2 = sqrt ((x1 - est_x1) * (x1 - est_x1) + (y1 - est_y1) * (y1 - est_y1));
+
+            float manh1 = fabsf(x1 - est_x1);
+            float manh2 = fabsf(y1 - est_y1);
+            float manh3 = fabsf(x2 - est_x2);
+            float manh4 = fabsf(y2 - est_y2);
+
+            weights_euc1[pt] = euc1 < 1 ? 1 : 1 / euc1;
+            weights_euc2[pt] = euc2 < 1 ? 1 : 1 / euc2;
+
+            weights_manh1[pt] = manh1 < 1 ? 1 : 1 / manh1;
+            weights_manh2[pt] = manh2 < 1 ? 1 : 1 / manh2;
+            weights_manh3[pt] = manh3 < 1 ? 1 : 1 / manh3;
+            weights_manh4[pt] = manh4 < 1 ? 1 : 1 / manh4;
+        }
     }
 
     bool LeastSquaresFitting (const int * const sample, unsigned int sample_size, Model &model) override {
@@ -121,10 +199,17 @@ public:
     }
 
     bool isSubsetGood (const int * const sample) override {
-//        Mat ms1 = _ms1.getMat(), ms2 = _ms2.getMat();
-//        if( haveCollinearPoints(ms1, count) || haveCollinearPoints(ms2, count) )
-//            return false;
-//
+        if (Math::haveCollinearPoints(points, sample, 4)) {
+            std::cout << "points are collinear!\n";
+            return false;
+        }
+        if (Math::isPointsClosed(points, sample, 4)) {
+            std::cout << "points are closed!\n";
+            return false;
+        }
+
+        return true;
+
 //        // We check whether the minimal set of points for the homography estimation
 //        // are geometrically consistent. We check if every 3 correspondences sets
 //        // fulfills the constraint.

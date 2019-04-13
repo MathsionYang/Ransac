@@ -14,8 +14,6 @@
 void Ransac::run() {
     auto begin_time = std::chrono::steady_clock::now();
 
-    Score best_score, current_score;
-
     std::vector<Model> models;
     models.emplace_back(Model(model));
 
@@ -58,8 +56,8 @@ void Ransac::run() {
 
         for (unsigned int i = 0; i < number_of_models; i++) {
             if (is_sprt) {
-                is_good_model = sprt->verifyModelAndGetModelScore(&models[i], iters, best_score.inlier_number,
-                                                                 &current_score);
+                is_good_model = sprt->verifyModelAndGetModelScore(&models[i], iters, best_score->inlier_number,
+                                                                 current_score);
                 if (!is_good_model) {
                     // do not skip bad model until predefined iterations reached
                     if (iters >= model->max_hypothesis_test_before_sprt) {
@@ -68,22 +66,21 @@ void Ransac::run() {
                     }
                 }
             } else {
-                 quality->getNumberInliers(&current_score, models[i].returnDescriptor());
+                 quality->getScore(current_score, models[i].returnDescriptor());
             }
-//            std::cout << models[i].returnDescriptor() << " ransac\n";
 
-//            std::cout << current_score.inlier_number << "\n";
-            if (current_score.bigger(best_score)) {
+//            std::cout << current_score->inlier_number << "\n";
+            if (current_score->bigger(best_score)) {
 
                 // update current model and current score by inner and iterative local optimization
                 // if inlier number is too small, do not update
 
                 if (LO) {
-                    local_optimization->GetModelScore (&models[i], &current_score);
+                    local_optimization->GetModelScore (&models[i], current_score);
                 }
 
                 // copy current score to best score
-                best_score.copyFrom(current_score);
+                best_score->copyFrom(current_score);
 
                 // remember best model
                 best_model.setDescriptor (models[i].returnDescriptor());
@@ -93,17 +90,17 @@ void Ransac::run() {
                     max_iters = ((ProsacTerminationCriteria *) termination_criteria)->
                             getUpBoundIterations(iters, best_model.returnDescriptor());
                 } else {
-                    max_iters = termination_criteria->getUpBoundIterations (best_score.inlier_number);
+                    max_iters = termination_criteria->getUpBoundIterations (best_score->inlier_number);
                 }
                 if (is_sprt) {
-                    max_iters = std::min (max_iters, sprt->getUpperBoundIterations(best_score.inlier_number));
+                    max_iters = std::min (max_iters, sprt->getUpperBoundIterations(best_score->inlier_number));
                 }
             } // end of if so far the best score
         } // end loop of number of models
         iters++;
     } // end main while loop
 
-    if (best_score.inlier_number == 0) {
+    if (best_score->inlier_number == 0) {
         std::cout << "Best score is 0. Check it!\n";
         best_model.setDescriptor(cv::Mat_<float>::eye(3,3));
         exit (111);
@@ -112,7 +109,7 @@ void Ransac::run() {
     // Graph Cut lo was set, but did not run, run it
     if (GraphCutLO && local_optimization->getNumberIterations() == 0) {
         // update best model and best score
-        local_optimization->GetModelScore(&best_model, &best_score);
+        local_optimization->GetModelScore(&best_model, best_score);
     }
 
     Model non_minimal_model (model);
@@ -130,27 +127,27 @@ void Ransac::run() {
          * extracting some points.
          */
         // estimate non minimal model with max inliers
-        if (! estimator->EstimateModelNonMinimalSample(max_inliers, best_score.inlier_number, non_minimal_model)) {
+        if (! estimator->EstimateModelNonMinimalSample(max_inliers, best_score->inlier_number, non_minimal_model)) {
             std::cout << "\033[1;31mNON minimal model completely failed!\033[0m \n";
             break;
         }
 
-        quality->getNumberInliers(&current_score, non_minimal_model.returnDescriptor(), model->threshold, true, max_inliers);
+        quality->getScore(current_score, non_minimal_model.returnDescriptor(), model->threshold, true, max_inliers);
 
         // Priority is for non minimal model estimation
         // break if non minimal model score is less than 80% of the best minimal model score
-        if ((float) current_score.inlier_number / best_score.inlier_number < 0.8) {
+        if ((float) current_score->inlier_number / best_score->inlier_number < 0.8) {
             break;
         }
 
         // if normalization score is less or equal, so next normalization is equal too, so break.
-        if (current_score.inlier_number <= previous_non_minimal_num_inlier) {
+        if (current_score->inlier_number <= previous_non_minimal_num_inlier) {
             break;
         }
 
-        previous_non_minimal_num_inlier = current_score.inlier_number;
+        previous_non_minimal_num_inlier = current_score->inlier_number;
 
-        best_score.copyFrom(current_score);
+        best_score->copyFrom(current_score);
         best_model.setDescriptor(non_minimal_model.returnDescriptor());
     }
 
@@ -165,7 +162,7 @@ void Ransac::run() {
     // Store results
     ransac_output = new RansacOutput (&best_model, max_inliers,
             std::chrono::duration_cast<std::chrono::microseconds>(fs).count(),
-                                      best_score.inlier_number, iters, num_lo_iters);
+                                      best_score->inlier_number, iters, num_lo_iters);
 
     delete[] max_inliers;
 }
@@ -173,8 +170,6 @@ void Ransac::run() {
 
 void Ransac::run_debug() {
     auto begin_time = std::chrono::steady_clock::now();
-
-    Score best_score, current_score;
 
     std::vector<Model> models;
     models.push_back (Model(model));
@@ -225,8 +220,8 @@ void Ransac::run_debug() {
 
             if (is_sprt) {
 //                std::cout << "sprt verify\n";
-                is_good_model = sprt->verifyModelAndGetModelScore(&models[i], iters, best_score.inlier_number,
-                                                                 &current_score);
+                is_good_model = sprt->verifyModelAndGetModelScore(&models[i], iters, best_score->inlier_number,
+                                                                 current_score);
 //                std::cout << "sprt verified\n";
 
                 if (!is_good_model) {
@@ -239,9 +234,9 @@ void Ransac::run_debug() {
                         continue;
                     }
 //                    else {
-//                        std::cout << "sprt " << current_score.inlier_number << "\n";
+//                        std::cout << "sprt " << current_score->inlier_number << "\n";
 //                        quality->getNumberInliers(current_score, models[i]);
-//                        std::cout << "std " << current_score.inlier_number << "\n";
+//                        std::cout << "std " << current_score->inlier_number << "\n";
 //                    }
                 }
 //                else {
@@ -251,15 +246,15 @@ void Ransac::run_debug() {
 //                std::cout << "Get quality score\n";
 
                auto t = std::chrono::steady_clock::now();
-                 quality->getNumberInliers(&current_score, models[i].returnDescriptor());
+                 quality->getScore(current_score, models[i].returnDescriptor());
                eval_time += std::chrono::duration_cast<std::chrono::microseconds>
                        (std::chrono::steady_clock::now() - t).count();
             }
 //
-          // std::cout << "Ransac, iteration " << iters << "; score " << current_score.inlier_number << "\n";
+          // std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
 //            std::cout << models[i]->returnDescriptor() << "\n\n";
 
-            if (current_score.bigger(best_score)) {
+            if (current_score->bigger(best_score)) {
 
 //                  std::cout << "update best score\n";
 
@@ -268,28 +263,28 @@ void Ransac::run_debug() {
 
                 auto t3 = std::chrono::steady_clock::now();
                 if (LO) {
-                    local_optimization->GetModelScore (&models[i], &current_score);
+                    local_optimization->GetModelScore (&models[i], current_score);
                 }
                 loc_opt_time += std::chrono::duration_cast<std::chrono::microseconds>
                         (std::chrono::steady_clock::now() - t3).count();
 
                 // copy current score to best score
-                best_score.copyFrom(current_score);
+                best_score->copyFrom(current_score);
 
                 // remember best model
                 best_model->setDescriptor (models[i].returnDescriptor());
 
-//                  std::cout << "Ransac, update best score " << best_score.inlier_number << '\n';
+//                  std::cout << "Ransac, update best score " << best_score->inlier_number << '\n';
 
                 // Termination conditions:
                 if (is_prosac) {
                     max_iters = ((ProsacTerminationCriteria *) termination_criteria)->
                             getUpBoundIterations(iters, best_model->returnDescriptor());
                 } else {
-                    max_iters = termination_criteria->getUpBoundIterations (best_score.inlier_number);
+                    max_iters = termination_criteria->getUpBoundIterations (best_score->inlier_number);
                 }
                 if (is_sprt) {
-                    max_iters = std::min (max_iters, sprt->getUpperBoundIterations(best_score.inlier_number));
+                    max_iters = std::min (max_iters, sprt->getUpperBoundIterations(best_score->inlier_number));
                 }
 //                 std::cout << "max iters prediction = " << max_iters << '\n';
             } // end of if so far the best score
@@ -299,21 +294,21 @@ void Ransac::run_debug() {
 
 //    std::cout << "end:\n";
 
-    if (best_score.inlier_number == 0) {
+    if (best_score->inlier_number == 0) {
         std::cout << "Best score is 0. Check it!\n";
         best_model->setDescriptor(cv::Mat_<float>::eye(3,3));
         exit (111);
     }
 
     if (GraphCutLO && local_optimization->getNumberIterations() == 0) {
-        local_optimization->GetModelScore(best_model, &best_score);
+        local_optimization->GetModelScore(best_model, best_score);
     }
 
 //    std::cout << "Calculate Non minimal model\n";
 
     Model *non_minimal_model = new Model (model);
 
-   // std::cout << "end best inl num " << best_score.inlier_number << '\n';
+   // std::cout << "end best inl num " << best_score->inlier_number << '\n';
 
     unsigned int previous_non_minimal_num_inlier = 0;
 
@@ -324,37 +319,37 @@ void Ransac::run_debug() {
    auto t = std::chrono::steady_clock::now();
     for (unsigned int norm = 0; norm < 4 /* normalizations count */; norm++) {
 //        std::cout << "estimate non minimal\n";
-//        std::cout << best_score.inlier_number << " -\n";
+//        std::cout << best_score->inlier_number << " -\n";
         // estimate non minimal model with max inliers
-        if (! estimator->EstimateModelNonMinimalSample(max_inliers, best_score.inlier_number, *non_minimal_model)) {
+        if (! estimator->EstimateModelNonMinimalSample(max_inliers, best_score->inlier_number, *non_minimal_model)) {
             std::cout << "\033[1;31mNON minimal model completely failed!\033[0m \n";
             break;
         }
 
         //
 //        std::cout << "get non minimal score\n";max_inliers
-        quality->getNumberInliers(&current_score, non_minimal_model->returnDescriptor(), model->threshold, true, max_inliers);
+        quality->getScore(current_score, non_minimal_model->returnDescriptor(), model->threshold, true, max_inliers);
 //        std::cout << "end get non minimal score\n";
 
         // Priority is for non minimal model estimation
-       // std::cout << "non minimal score " << current_score.inlier_number << '\n';
+       // std::cout << "non minimal score " << current_score->inlier_number << '\n';
 
         // break if non minimal model score is less than 80% of the best minimal model score
-        if ((float) current_score.inlier_number / best_score.inlier_number < 0.8) {
+        if ((float) current_score->inlier_number / best_score->inlier_number < 0.8) {
 //            std::cout << "break; non minimal score is significanlty worse than best score: RSC* "
-//                         << best_score.inlier_number << " vs PCA " << current_score.inlier_number <<"\n";
+//                         << best_score->inlier_number << " vs PCA " << current_score->inlier_number <<"\n";
             break;
         }
 
         // if normalization score is less or equal, so next normalization is equal too, so break.
-        if (current_score.inlier_number <= previous_non_minimal_num_inlier) {
+        if (current_score->inlier_number <= previous_non_minimal_num_inlier) {
             // std::cout << "break; previous non minimal score is the same.\n";
             break;
         }
 
-        previous_non_minimal_num_inlier = current_score.inlier_number;
+        previous_non_minimal_num_inlier = current_score->inlier_number;
 
-        best_score.copyFrom(current_score);
+        best_score->copyFrom(current_score);
         best_model->setDescriptor(non_minimal_model->returnDescriptor());
     }
    non_min_est_time = std::chrono::duration_cast<std::chrono::microseconds>
@@ -378,7 +373,7 @@ void Ransac::run_debug() {
     // Store results
     ransac_output = new RansacOutput (best_model, max_inliers,
             std::chrono::duration_cast<std::chrono::microseconds>(fs).count(),
-                                      best_score.inlier_number, iters, num_lo_iters);
+                                      best_score->inlier_number, iters, num_lo_iters);
 
     delete[] max_inliers;
     delete (best_model);

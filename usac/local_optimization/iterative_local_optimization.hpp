@@ -87,7 +87,7 @@ public:
                 if (! estimator->LeastSquaresFitting(lo_inliers, lo_score->inlier_number, *lo_model)) break;
             }
 
-            quality->getNumberInliers(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
+            quality->getScore(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
 
             // only for test
             lo_iterative_iters++;
@@ -121,7 +121,7 @@ public:
             // break if there are not enough inliers to estimate non minimal model
             if (lo_score->inlier_number <= lo_model->sample_size) break;
             if (! estimator->LeastSquaresFitting(lo_inliers, lo_score->inlier_number, *lo_model)) break;
-            quality->getNumberInliers(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
+            quality->getScore(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
 
             // break if best score is bigger, because after all points normalization and
             // decreasing threshold lo score could not be bigger in next iterations.

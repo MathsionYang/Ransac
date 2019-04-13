@@ -26,17 +26,29 @@ public:
     virtual bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, const float * const weights, Model &model) {
         std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
     }
-
-    virtual bool isSubsetGood (const int * const sample) {
-        return false;
+    virtual bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size, const float * const weightsx, const float * const weightsy, Model &model) {
+        std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
+    }
+    virtual bool EstimateModelNonMinimalSample(const int * const sample, unsigned int sample_size,
+            const float * const weightsx1, const float * const weightsy1,
+            const float * const weightsx2, const float * const weightsy2, Model &model) {
+        std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
     }
 
-    virtual inline float GetError(unsigned int pidx) = 0;
+    virtual void getWeights (float * weights_euc1, float * weights_euc2, float * weights_manh1,
+                             float * weights_manh2, float * weights_manh3, float * weights_manh4) {}
+
+    virtual bool isSubsetGood (const int * const sample) {
+        return true;
+    }
+
+    // use inline
+    virtual float GetError(unsigned int pidx) = 0;
     virtual unsigned int GetNumInliers (float threshold, bool get_inliers=false, int * inliers=nullptr) { return 0; }
     virtual void GetError(float * weights, float threshold, int * inliers, unsigned int * inliers_size) {
         std::cout << "NOT IMPLEMENTED GetError (float * weights) in estimator\n";
     }
-    virtual inline int SampleNumber() = 0;
+    virtual int SampleNumber() = 0;
 
     virtual void setModelParameters (const cv::Mat& model) = 0;
 

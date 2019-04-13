@@ -23,7 +23,9 @@ public:
 
     bool NormalizedDLT (const int * const sample, unsigned int sample_number, cv::Mat &H);
     bool NormalizedDLT (const int * const sample, unsigned int sample_number, const float * const weights, cv::Mat &H);
-
+    bool NormalizedDLT (const int * const sample, unsigned int sample_number, const float * const weightsx, const float * const weightsy, cv::Mat &H);
+    bool NormalizedDLT (const int * const sample, unsigned int sample_number, const float * const weightsx1, const float * const weightsy1,
+                                                                              const float * const weightsx2, const float * const weightsy2, cv::Mat &H);
 };
 // non minimal
 bool DLT (const float * const points, unsigned int sample_number, cv::Mat &H);
@@ -35,6 +37,11 @@ void GetNormalizingTransformation (const float * const pts, cv::Mat& norm_points
 
 void GetNormalizingTransformation (const float * const pts, cv::Mat& norm_points,
                                    const int * const sample, unsigned int sample_number, const float * const weights, cv::Mat &T1, cv::Mat &T2);
+void GetNormalizingTransformation (const float * const pts, cv::Mat& norm_points,
+                                   const int * const sample, unsigned int sample_number, const float * const weightsx, const float * const weightsy, cv::Mat &T1, cv::Mat &T2);
+void GetNormalizingTransformation (const float * const pts, cv::Mat& norm_points,
+                                   const int * const sample, unsigned int sample_number, const float * const weightsx1, const float * const weightsy1,
+                                            const float * const weightsx2, const float * const weightsy2, cv::Mat &T1, cv::Mat &T2);
 
 
 /*

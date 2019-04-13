@@ -22,6 +22,24 @@ void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points
     }
 }
 
+//-----------------------------------------------------------------------------------------
+void initScore (Score *& score, SCORE sc) {
+    if (sc == SCORE::RANSAC) {
+        score = new RansacScore;
+    } else {
+        std::cout << "not yet implemented! init::initscore\n";
+    }
+}
+
+//-----------------------------------------------------------------------------------------
+void initQuality (Quality *& quality, SCORE sc) {
+    if (sc == SCORE::RANSAC) {
+        quality = new RansacQuality;
+    } else {
+        std::cout << "not yet implemented! init::initquality\n";
+    }
+}
+
 // ----------------------------------------------------------------------------------------
 void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points) {
      unsigned int points_size = points.rows;

@@ -21,6 +21,11 @@ SET(OpenCV_DIR /home/miv1774/opencv-3.4.0/build/lib)
 project (usac)
 find_package (OpenCV REQUIRED)
 
+# for plot
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+#
+
 add_executable(
         ransac main.cpp
 
@@ -71,13 +76,5 @@ add_executable(
 # optimalization
 # set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3" )
 
-target_link_libraries (ransac ${OpenCV_LIBS} )
-
-# theia
-#find_package(Theia REQUIRED)
-#include_directories(${THEIA_INCLUDE_DIRS})
-#target_link_libraries (ransac ${THEIA_LIBRARIES})
-
-# Eigen
-# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-# target_link_libraries (ransac Eigen3::Eigen)
+target_link_libraries (ransac ${OpenCV_LIBS})
+target_link_libraries (ransac ${PYTHON_LIBRARIES})

@@ -27,6 +27,10 @@
 
 void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points);
 // ----------------------------------------------------------------------------------------
+void initScore (Score *& score, SCORE sc);
+// ----------------------------------------------------------------------------------------
+void initQuality (Quality *& quality, SCORE sc);
+// ----------------------------------------------------------------------------------------
 void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points);
 // ----------------------------------------------------------------------------------------
 void initTerminationCriteria (TerminationCriteria *& termination_criteria,

@@ -26,6 +26,8 @@ protected:
     LocalOptimization * local_optimization;
     SPRT * sprt;
 
+    Score *best_score, *current_score;
+
     cv::Mat neighbors_m;
     std::vector<std::vector<int>> neighbors_v;
     unsigned int points_size;
@@ -40,6 +42,7 @@ public:
         delete (estimator);
         delete (termination_criteria);
         delete (ransac_output);
+        delete (current_score); delete (best_score);
     }
 
     Ransac (Model * model_, cv::InputArray points_) : points ((float *)points_.getMat().data) {
@@ -54,8 +57,13 @@ public:
         initEstimator (estimator, model->estimator, points_.getMat());
         initSampler (sampler, model, points_.getMat());
 
+        // init score
+        initScore(current_score, model->score);
+        initScore(best_score, model->score);
+
         // Init quality
-        quality = new Quality;
+        initQuality (quality, model->score);
+
         quality->init(points_size, model->threshold, estimator);
         //
 

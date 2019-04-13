@@ -47,7 +47,7 @@ void Tests::testHomographyFitting() {
 //     -------------------------------------------------
 
 
-     model.lo = LocOpt ::NullLO;
+     model.lo = LocOpt ::IRLS;
      model.setSprt(0);
      model.setCellSize(50);
      model.setNeighborsType(NeighborsSearch::Grid);
@@ -55,10 +55,10 @@ void Tests::testHomographyFitting() {
 
     if (model.sampler ==  SAMPLER::Prosac) {
 //        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
-        // getStatisticalResults(sorted_points, model, 200, true, gt_sorted_inliers, false, nullptr);
+//         getStatisticalResults(sorted_points, &model, 1000, true, gt_sorted_inliers, false, nullptr);
     } else {
-//        test (points, &model, img_name, dataset, true, gt_inliers);
-       getStatisticalResults(points, &model, 50, true, gt_inliers, false, nullptr);
+        test (points, &model, img_name, dataset, true, gt_inliers);
+//       getStatisticalResults(points, &model, 100, true, gt_inliers, false, nullptr);
     }
 
 //    auto t = std::chrono::steady_clock::now();

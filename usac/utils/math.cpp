@@ -83,33 +83,59 @@ int Math::fast_factorial (int n) {
  */
 bool Math::haveCollinearPoints (const float * const points, const int * const sample, unsigned int sample_size) {
     unsigned int last_pt_idx = 4*sample[sample_size-1];
-    float last_pt_x1 = points[last_pt_idx  ];
-    float last_pt_y1 = points[last_pt_idx+1];
-    float last_pt_x2 = points[last_pt_idx+2];
-    float last_pt_y2 = points[last_pt_idx+3];
+    float last_pt_x= points[last_pt_idx  ];
+    float last_pt_y = points[last_pt_idx+1];
+    float last_pt_X = points[last_pt_idx+2];
+    float last_pt_Y = points[last_pt_idx+3];
 
-    // check that the last point does not belong
-    // to a line connecting some previously selected points
-    // also checks that points are not too close to each other
     // Checks if no more than 2 points are on the same line
-    float dx1, dy1, dx2, dy2, dX1, dY1, dX2, dY2;
+    //     |x1 y1 1|
+    // det |x2 y2 1| = 0
+    //     |x3 y3 1|
+    float x1, y1, x2, y2, X1, Y1, X2, Y2;
     unsigned pt_idx;
     for (unsigned int j = 0; j < sample_size-1; j++) {
         pt_idx = 4*sample[j];
-        dx1 = points[pt_idx  ] - last_pt_x1; // x
-        dy1 = points[pt_idx+1] - last_pt_y1; // y
-        dX1 = points[pt_idx+2] - last_pt_x2; // x
-        dY1 = points[pt_idx+3] - last_pt_y2; // y
+        x1 = points[pt_idx  ];
+        y1 = points[pt_idx+1];
+        X1 = points[pt_idx+2];
+        Y1 = points[pt_idx+3];
 
         for (unsigned int k = 0; k < j; k++){
             pt_idx = 4*sample[k];
-            dx2 = points[pt_idx  ] - last_pt_x1; // x
-            dy2 = points[pt_idx+1] - last_pt_y1; // y
-            dX2 = points[pt_idx+2] - last_pt_x2; // x
-            dY2 = points[pt_idx+3] - last_pt_y2; // y
+            x2 = points[pt_idx  ];
+            y2 = points[pt_idx+1];
+            X2 = points[pt_idx+2];
+            Y2 = points[pt_idx+3];
 
-            if (fabsf(dx2*dy1 - dy2*dx1) <= FLT_EPSILON*(fabsf(dx1) + fabsf(dy1) + fabsf(dx2) + fabsf(dy2)) ||
-                fabsf(dX2*dY1 - dY2*dX1) <= FLT_EPSILON*(fabsf(dX1) + fabsf(dY1) + fabsf(dX2) + fabsf(dY2)))
+            if (fabsf(x1*(y2-last_pt_y) + x2*(last_pt_y-y1) + last_pt_x*(y1-y2)) < FLT_EPSILON ||
+                fabsf(X1*(Y2-last_pt_Y) + X2*(last_pt_Y-Y1) + last_pt_X*(Y1-Y2)) < FLT_EPSILON) return true;
+        }
+    }
+    return false;
+}
+
+/*
+ * @points Nx4 array: x1 y1 x2 y2
+ * @sample Mx1 array
+ */
+bool Math::isPointsClosed (const float * const points, const int * const sample, unsigned int sample_size, float min_dist) {
+    float x1, y1, X1, Y1, x2, y2, X2, Y2;
+    unsigned pt_idx;
+    for (unsigned int i = 0; i < sample_size; i++) {
+        pt_idx = 4*sample[i];
+        x1 = points[pt_idx  ];
+        y1 = points[pt_idx+1];
+        X1 = points[pt_idx+2];
+        Y1 = points[pt_idx+3];
+        for (unsigned int j = i+1; j < sample_size; j++) {
+            pt_idx = 4 * sample[j];
+            x2 = points[pt_idx    ];
+            y2 = points[pt_idx + 1];
+            X2 = points[pt_idx + 2];
+            Y2 = points[pt_idx + 3];
+            if (sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) < min_dist ||
+                sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2)) < min_dist)
                 return true;
         }
     }

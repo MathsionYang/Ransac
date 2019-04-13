@@ -14,7 +14,8 @@ public:
     bool isInit () { return isinit; }
     virtual ~TerminationCriteria() = default;
 
-    virtual inline unsigned int getUpBoundIterations (unsigned int inlier_size) = 0;
-    virtual inline unsigned int getUpBoundIterations (unsigned int inlier_size, unsigned int points_size) = 0;
+    // use inline
+    virtual unsigned int getUpBoundIterations (unsigned int inlier_size) = 0;
+    virtual unsigned int getUpBoundIterations (unsigned int inlier_size, unsigned int points_size) = 0;
 };
 #endif //USAC_TERMINATIONCRITERIA_H

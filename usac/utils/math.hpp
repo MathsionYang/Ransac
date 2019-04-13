@@ -31,6 +31,7 @@ public:
 
     static void splitTime (Time * time, long time_mcs);
     static bool haveCollinearPoints (const float * const points, const int * const sample, unsigned int sample_size);
+    static bool isPointsClosed (const float * const points, const int * const sample, unsigned int sample_size, float min_dist=5);
 };
 
 #endif //USAC_UTILS_MATH_H

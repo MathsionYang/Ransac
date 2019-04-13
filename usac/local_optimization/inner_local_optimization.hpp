@@ -6,10 +6,10 @@
 #define USAC_RANSACLOCALOPTIMIZATION_H
 
 #include "local_optimization.hpp"
-#include "../quality/quality.hpp"
 #include "../sampler/uniform_sampler.hpp"
 #include "../random_generator/uniform_random_generator.hpp"
 #include "iterative_local_optimization.hpp"
+#include "../quality/ransac_quality.hpp"
 
 /*
  * Reference:
@@ -20,7 +20,7 @@ class InnerLocalOptimization : public LocalOptimization {
 private:
     Quality * quality;
     Estimator * estimator;
-    Score lo_score;
+    RansacScore lo_score;
     Model lo_model;
     UniformRandomGenerator uniform_random_generator;
     IterativeLocalOptimization * iterativeLocalOptimization;
@@ -96,7 +96,7 @@ public:
             // Start evaluating a model with new threshold. And get inliers for iterative lo ransac.
             // multiply threshold K * θ
             lo_model.threshold = lo_model.lo_threshold_multiplier * lo_model.threshold;
-            quality->getNumberInliers(&lo_score, lo_model.returnDescriptor(), lo_model.threshold, true, lo_inliers);
+            quality->getScore(&lo_score, lo_model.returnDescriptor(), lo_model.threshold, true, lo_inliers);
 
             // continue if there are not enough inliers for non minimal estimation
             if (lo_score.inlier_number <= lo_model.sample_size) continue;

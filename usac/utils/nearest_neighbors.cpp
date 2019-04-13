@@ -88,13 +88,12 @@ void NearestNeighbors::getNearestNeighbors_nanoflann (const cv::Mat& points, int
 
 
     // do a knn search
-    unsigned long *ret_indexes = new unsigned long[k_nearest_neighbors + 1];
-    float *out_dists_sqr = new float[k_nearest_neighbors + 1];
+    unsigned long ret_indexes[k_nearest_neighbors + 1];
+    float out_dists_sqr[k_nearest_neighbors + 1];
     nanoflann::KNNResultSet<float> resultSet(k_nearest_neighbors + 1);
 
     nearest_neighbors = cv::Mat_<int>(points_size, k_nearest_neighbors);
     int *nearest_neighbors_ptr = (int *) nearest_neighbors.data;
-
 
     int p_idx;
     if (get_distances) {
@@ -121,9 +120,6 @@ void NearestNeighbors::getNearestNeighbors_nanoflann (const cv::Mat& points, int
             }
         }
     }
-
-    delete[] ret_indexes;
-    delete[] out_dists_sqr;
 }
 
 /*

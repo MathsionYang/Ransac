@@ -2,44 +2,26 @@
 // It is subject to the license terms in the LICENSE file found in the top-level directory
 // of this distribution and at http://opencv.org/license.html.
 
-#ifndef RANSAC_QUALITY_H
-#define RANSAC_QUALITY_H
+#ifndef QUALITY_H
+#define QUALITY_H
 
 #include "../precomp.hpp"
 
 #include "../estimator/estimator.hpp"
 #include "../model.hpp"
 
-/*
- * Score for model estimation
- */
 class Score {
 public:
-    int inlier_number = 0;
+    virtual ~Score() = default;
+
+    unsigned int inlier_number = 0;
     float score = 0;
 
-    // priority for inlier number
-    inline bool bigger (const Score * const score2) {
-        if (inlier_number > score2->inlier_number) return true;
-        if (inlier_number == score2->inlier_number) return score > score2->score;
-        return false;
-    }
-    inline bool bigger (const Score& score2) {
-        if (inlier_number > score2.inlier_number) return true;
-        if (inlier_number == score2.inlier_number) return score > score2.score;
-        return false;
-    }
-
-    void copyFrom (const Score * const score_to_copy) {
-        score = score_to_copy->score;
-        inlier_number = score_to_copy->inlier_number;
-    }
-    void copyFrom (const Score &score_to_copy) {
-        score = score_to_copy.score;
-        inlier_number = score_to_copy.inlier_number;
-    }
+    virtual bool bigger (const Score * const score2) = 0;
+    virtual bool bigger (const Score &score2) = 0;
+    virtual void copyFrom (const Score * const score2) = 0;
+    virtual void copyFrom (const Score &score2) = 0;
 };
-
 
 class Quality {
 protected:
@@ -48,7 +30,9 @@ protected:
     Estimator * estimator;
     bool isinit = false;
 public:
-    bool isInit () { return isinit; }
+    virtual ~Quality() = default;
+
+    virtual bool isInit () { return isinit; }
 
     void init (unsigned int points_size_, float theshold_, Estimator * estimator_) {
         points_size = points_size_;
@@ -61,54 +45,8 @@ public:
      * calculating number of inliers of current model.
      * score is sum of distances to estimated inliers.
      */
-    inline void getNumberInliers (Score * score, const cv::Mat& model, float threshold=0, bool get_inliers=false,
-                                  int * inliers= nullptr, bool parallel=false) {
-        if (threshold == 0) {
-            threshold = this->threshold;
-        }
-
-        estimator->setModelParameters(model);
-
-        unsigned int inlier_number = 0;
-        float sum_errors = 0;
-
-        if (parallel && !get_inliers) {
-           #pragma omp parallel for reduction (+:inlier_number)
-           for (unsigned int point = 0; point < points_size; point++) {
-               if (estimator->GetError(point) < threshold) {
-                   inlier_number++;
-               }
-           }
-        } else {
-           // inlier_number = estimator->GetNumInliers(threshold, get_inliers, inliers);
-            float err;
-            if (get_inliers) {
-                for (unsigned int point = 0; point < points_size; point++) {
-                    err = estimator->GetError(point);
-                    if (err < threshold) {
-                        inliers[inlier_number++] = point;
-                        sum_errors += err;
-                    }
-                }
-            } else {
-                for (unsigned int point = 0; point < points_size; point++) {
-                    err = estimator->GetError(point);
-                    if (err < threshold) {
-                        inlier_number++;
-                        sum_errors += err;
-                    }
-                }
-            }
-        }
-
-        score->inlier_number = inlier_number;
-        score->score = sum_errors;
-    }
-
-
-	virtual void getScore (const float * const points, Score * score, const cv::Mat& model, int * inliers) {
-        std::cout << "NOT IMPEMENTED getScore IN QUALITY\n";
-    }
+    virtual void getScore (Score * score, const cv::Mat& model, float threshold=0, bool get_inliers=false,
+                                  int * inliers= nullptr, bool parallel=false) = 0;
 
     void getInliers (const cv::Mat& model, int * inliers) {
         // Note class Quality should be initialized
@@ -152,4 +90,4 @@ public:
 };
 
 
-#endif //RANSAC_QUALITY_H
+#endif //QUALITY_H

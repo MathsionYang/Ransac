@@ -11,6 +11,7 @@ enum ESTIMATOR  { Line2d, Homography, Fundamental, Essential, Affine };
 enum SAMPLER  { Uniform, ProgressiveNAPSAC, Napsac, Prosac, Evsac, ProsacNapsac };
 enum NeighborsSearch {NullN, Nanoflann, Grid};
 enum LocOpt {NullLO, InItLORsc, InItFLORsc, GC, IRLS};
+enum SCORE {RANSAC, MSAC, LMS};
 
 class Model {
 public:
@@ -34,7 +35,7 @@ public:
 
     ESTIMATOR estimator;
     SAMPLER sampler;
-
+    SCORE score = SCORE ::RANSAC;
     // sprt
     bool sprt = false;
 	unsigned int max_hypothesis_test_before_sprt = 20;
@@ -74,6 +75,10 @@ public:
 		k_nearest_neighbors = knn;
 		estimator = estimator_;
 		sampler = sampler_;
+	}
+
+	void setScore (SCORE score_){
+	    score = score_;
 	}
 
 	void ResetRandomGenerator (bool reset) {

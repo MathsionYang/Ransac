@@ -7,10 +7,11 @@ int main (int args, char ** argv) {
 
 //	Drawing::drawPointsByScore(DATASET::Homogr_SIFT, "graf");
 //    Tests::run_all_tests();
+//    Tests::testDensityOptimalKnn();
 
 //     run tests
 //     Tests::testLineFitting();
-//     Tests::testHomographyFitting();
+     Tests::testHomographyFitting();
 //     Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
      // Tests::testAffineFitting();

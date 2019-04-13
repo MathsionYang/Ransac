@@ -257,7 +257,7 @@ public:
             results.median_avg_error = (errorss[N/2-1] + errorss[N/2])/2;
         }
 
-       std::cout << &results << "\n";
+//       std::cout << &results << "\n";
 
         if (get_results) {
             statistical_results->copyFrom(&results);

@@ -102,11 +102,10 @@ void Tests::testDensityOptimalKnn () {
     std::vector<cv::Mat> points_imgs;
     std::vector<std::vector<int>> inliers_imgs;
     
-    int N_runs = 200;
+    int N_runs = 100;
     int knn = 5;
     float threshold = 2;
     float confidence = 0.95;
-    float cell_size = 50;
 
     for (const std::string &img_name : points_filename) {
         std::cout << "get points for " << img_name << "\n";
@@ -125,18 +124,15 @@ void Tests::testDensityOptimalKnn () {
     Model model (threshold, confidence, knn, ESTIMATOR::Homography, SAMPLER::Prosac);
     // Model model (threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
     model.lo = LocOpt ::NullLO;
-    model.setNeighborsType(NeighborsSearch::Grid);
-    model.setCellSize(cell_size);
-    model.ResetRandomGenerator(true);
 
     StatisticalResults statistical_results;
 
-    for (int k = 3; k < 15; k++) {
+    for (int k = 9; k < 16; k++) {
 
         float avg_avg_avg_error = 0, avg_avg_time = 0;
         int img = 0;
         for (const std::string &img_name : points_filename) {
-
+            std::cout << img_name << "\n";
             cv::Mat dense_sorted_points;
             std::vector<int> dense_inliers;
 
@@ -145,15 +141,12 @@ void Tests::testDensityOptimalKnn () {
             std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
             float dense_sorting_time = std::chrono::duration_cast<std::chrono::microseconds>(fs).count();
 
+            Tests::getStatisticalResults(dense_sorted_points, &model, N_runs,
+                                        true, dense_inliers, true, &statistical_results);
 
-                Tests::getStatisticalResults(dense_sorted_points, &model, N_runs,
-                                            true, dense_inliers, true, &statistical_results);
-
-            float avg_avg_error = statistical_results.avg_avg_error;
-            float avg_time = statistical_results.avg_time_mcs;
-            std::cout << avg_time << " " << avg_avg_error << "\n";    
-            avg_avg_avg_error += avg_avg_error;
-            avg_avg_time += avg_time + dense_sorting_time;
+//            std::cout << statistical_results.avg_time_mcs << " " << statistical_results.avg_avg_error << "\n";
+            avg_avg_avg_error += statistical_results.avg_avg_error;
+            avg_avg_time += statistical_results.avg_time_mcs + dense_sorting_time;
 
             img++;
         }
