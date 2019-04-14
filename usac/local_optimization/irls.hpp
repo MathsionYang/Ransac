@@ -20,80 +20,42 @@ private:
     UniformRandomGenerator uniformRandomGenerator;
     RansacScore irls_score;
 
-    float * weights;
+    float *errors, *weights_euc1, *weights_euc2, *weights_manh1, *weights_manh2, *weights_manh3, *weights_manh4;
     int *inliers, *sample;
-    unsigned int points_size, max_sample_size;
+    unsigned int points_size, max_sample_size, num_lo_iters;
     float threshold;
 
 public:
     ~Irls() override {
-        delete[] weights; delete[] inliers; delete[] sample;
+        delete[] inliers; delete[] sample;
     }
 
     Irls (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) : irls_model (model){
         max_sample_size = model->lo_sample_size;
-    
-        weights = new float[points_size_];
+        points_size = points_size_;
+
+        errors = new float[points_size];
+        weights_euc1 = new float [points_size];
+        weights_euc2 = new float [points_size];
+        weights_manh1 = new float [points_size];
+        weights_manh2 = new float [points_size];
+        weights_manh3 = new float [points_size];
+        weights_manh4 = new float [points_size];
+
         inliers = new int[points_size_];
         sample = new int [max_sample_size];
 
         quality = quality_;
         estimator = estimator_;
-        points_size = points_size_;
         threshold = model->threshold;
+        num_lo_iters = 20; // model->lo_inner_iterations;
 
         if (model->reset_random_generator) {
             uniformRandomGenerator.resetTime();
         }
-
     }
 
     void GetModelScore (Model * model, Score * score) override {
-        irls_model.setDescriptor(model->returnDescriptor());
-        Model std_lsq (model);
-        RansacScore std_lsq_s;
-        Model trimm_lsq (model);
-        RansacScore trimm_lsq_s;
-        Model irls_euc2 (model);
-        RansacScore irls_euc2_s;
-        Model irls_manh4 (model);
-        RansacScore irls_manh4_s;
-
-        float * weights_euc1 = new float [points_size];
-        float * weights_euc2 = new float [points_size];
-        float * weights_man1 = new float [points_size];
-        float * weights_man2 = new float [points_size];
-        float * weights_man3 = new float [points_size];
-        float * weights_man4 = new float [points_size];
-
-        unsigned int max_std_lsq_inl = 0;
-        unsigned int max_trimm_lsq = 0;
-        unsigned int max_euc1_inl = 0;
-        unsigned int max_euc2_inl = 0;
-        unsigned int max_manh4_inl = 0;
-
-        float avg_std_lsq_inl = 0;
-        float avg_trimm_lsq = 0;
-        float avg_euc1_inl = 0;
-        float avg_euc2_inl = 0;
-        float avg_manh4_inl = 0;
-
-        unsigned int num_samples;
-        unsigned int num_iters = 20;
-        for (unsigned int iter = 1; iter < num_iters; iter++) {
-//            estimator->setModelParameters(irls_model.returnDescriptor());
-
-            unsigned int num_inliers;
-
-//            std::vector<float> errors;
-////            cv::Mat data = cv::Mat_<float>(points_size, 1);
-//            if (model->estimator == ESTIMATOR::Homography) {
-//                estimator->getWeights(weights_euc1, weights_euc2, weights_man1, weights_man2, weights_man3, weights_man4);
-//            } else {
-//                estimator->GetError(weights, model->threshold, inliers, &num_inliers);
-//            }
-
-
 //            std::sort(errors.begin(), errors.end());
 //            std::vector<float> y(errors.size());
 //            std::iota(y.begin(), y.end(), 1);
@@ -102,109 +64,208 @@ public:
 //            matplotlibcpp::save("../results/1.png");
 //            exit(0);
 
-            //----------------------------------------------------
+        runIRLSEuclideanOneWeights(model, score);
+        runIRLSEuclideanTwoWeights(model, score);
+        runIRLSManhattanFourWeights(model, score);
+        runIRLSIdentityWeights(model, score);
+//        runIRLSIdentityWeights(model, score, true);
+    }
+
+    void runIRLSEuclideanOneWeights (Model * model, Score * score, bool trimmed=false) {
+        irls_model.setDescriptor(model->returnDescriptor());
+
+        unsigned int max_score = 0;
+        unsigned int min_score = 10000000;
+        float avg_score = 0;
+        unsigned int num_samples, num_inliers;
+        for (unsigned int iter = 1; iter < num_lo_iters; iter++) {
             estimator->setModelParameters(irls_model.returnDescriptor());
-            estimator->getWeights(weights_euc1, weights_euc2, weights_man1, weights_man2, weights_man3, weights_man4);
-            quality->getScore(&irls_score, irls_model.returnDescriptor(), irls_model.threshold, true, inliers);
-            num_inliers = irls_score.inlier_number;
-            num_samples = std::min(max_sample_size, num_inliers);
-            uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers-1);
-            for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
-                sample[smpl] = inliers[sample[smpl]];
+
+            if (trimmed) {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           true, errors, true, weights_euc1, false, nullptr, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                std::sort (inliers, inliers+num_inliers, [&](int a, int b) {
+                    return errors[a] < errors[b];
+                });
+                estimator->EstimateModelNonMinimalSample(inliers, num_samples, weights_euc1, irls_model);
+            } else {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           false, nullptr, true, weights_euc1, false, nullptr, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers - 1);
+                for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
+                    sample[smpl] = inliers[sample[smpl]];
+                }
+                estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_euc1, irls_model);
             }
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_euc1, irls_model);
-            std::cout << "irls 1 euclidean iteration " << iter << "; inliers size " << num_inliers << "\n";
-            if (max_euc1_inl < num_inliers) max_euc1_inl = num_inliers;
-            avg_euc1_inl += num_inliers;
+            irls_score.inlier_number = num_inliers;
+            irls_score.score = irls_score.inlier_number;
 
-            //----------------------------------------------------
-            estimator->setModelParameters(irls_euc2.returnDescriptor());
-            estimator->getWeights(weights_euc1, weights_euc2, weights_man1, weights_man2, weights_man3, weights_man4);
-            quality->getScore(&irls_euc2_s, irls_euc2.returnDescriptor(), irls_euc2.threshold, true, inliers);
-            num_inliers = irls_euc2_s.inlier_number;
-            num_samples = std::min(max_sample_size, num_inliers);
-            uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers-1);
-            for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
-                sample[smpl] = inliers[sample[smpl]];
-            }
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_euc1, weights_euc2, irls_euc2);
-            std::cout << "irls 2 euclidean iteration " << iter << "; inliers size " << num_inliers << "\n";
-            if (max_euc2_inl < num_inliers) max_euc2_inl = num_inliers;
-            avg_euc2_inl += num_inliers;
-
-            //----------------------------------------------------
-            estimator->setModelParameters(irls_manh4.returnDescriptor());
-            estimator->getWeights(weights_euc1, weights_euc2, weights_man1, weights_man2, weights_man3, weights_man4);
-            quality->getScore(&irls_manh4_s, irls_manh4.returnDescriptor(), irls_manh4.threshold, true, inliers);
-            num_inliers = irls_manh4_s.inlier_number;
-            num_samples = std::min(max_sample_size, num_inliers);
-            uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers-1);
-            for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
-                sample[smpl] = inliers[sample[smpl]];
-            }
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_man1, weights_man2, weights_man3, weights_man4, irls_manh4);
-            std::cout << "irls 4 manhattan iteration " << iter << "; inliers size " << num_inliers << "\n";
-            if (max_manh4_inl < num_inliers) max_manh4_inl = num_inliers;
-            avg_manh4_inl += num_inliers;
-
-            //----------------------------------------------------
-            estimator->setModelParameters(std_lsq.returnDescriptor());
-            quality->getScore(&std_lsq_s, std_lsq.returnDescriptor(), std_lsq.threshold, true, inliers);
-            num_inliers = std_lsq_s.inlier_number;
-            num_samples = std::min(max_sample_size, num_inliers);
-            uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers-1);
-            for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
-                sample[smpl] = inliers[sample[smpl]];
-            }
-            estimator->EstimateModelNonMinimalSample(sample, num_samples, std_lsq);
-            std::cout << "standard least squares iteration " << iter << "; inliers size " << num_inliers << "\n";
-            if (max_std_lsq_inl < num_inliers) max_std_lsq_inl = num_inliers;
-            avg_std_lsq_inl += num_inliers;
-
-            //----------------------------------------------------
-            estimator->setModelParameters(trimm_lsq.returnDescriptor());
-            quality->getScore(&trimm_lsq_s, trimm_lsq.returnDescriptor(), trimm_lsq.threshold, true, inliers);
-            num_inliers = trimm_lsq_s.inlier_number;
-            num_samples = std::min(max_sample_size, num_inliers);
-            std::sort(inliers, inliers+num_inliers);
-            estimator->EstimateModelNonMinimalSample(inliers, num_samples, trimm_lsq);
-            std::cout << "trimmed least squares iteration " << iter << "; inliers size " << num_inliers << "\n";
-            if (max_trimm_lsq < num_inliers) max_trimm_lsq = num_inliers;
-            avg_trimm_lsq += num_inliers;
-
-            std::cout << "============================================================================================\n";
-//            if (num_inliers > score->inlier_number) {
-//                std::cout << "UPDATE SCORE\n";
-//                score->inlier_number = num_inliers;
-//                score->score = num_inliers;
+//            if (irls_score.bigger(score)) {
+//                score->copyFrom(irls_score);
 //                model->setDescriptor(irls_model.returnDescriptor());
 //            }
+
+            std::cout << "irls trimmed " << trimmed << " one euclidean iteration " << iter << "; inliers size " << num_inliers << "\n";
+            if (iter != 0 && max_score < num_inliers) max_score = num_inliers;
+            if (iter != 0 && min_score > num_inliers) min_score = num_inliers;
+            avg_score += num_inliers;
         }
+        std::cout << "max score " << max_score << "\n";
+        std::cout << "min score " << min_score << "\n";
+        std::cout << "avg score " << avg_score / num_lo_iters << "\n";
+        std::cout << "-----------------------------------------------\n";
+    }
 
-        std::cout << "max euc1 " << max_euc1_inl << "\n";
-        std::cout << "max euc2 " << max_euc2_inl << "\n";
-        std::cout << "max manh4 " << max_manh4_inl << "\n";
-        std::cout << "max std lsq " << max_std_lsq_inl << "\n";
-        std::cout << "max trimm lsq " << max_trimm_lsq << "\n";
-        std::cout << "- - - - \n";
-        std::cout << "avg euc1 " << avg_euc1_inl / num_iters << "\n";
-        std::cout << "avg euc2 " << avg_euc2_inl / num_iters << "\n";
-        std::cout << "avg manh4 " << avg_manh4_inl / num_iters << "\n";
-        std::cout << "avg std lsq " << avg_std_lsq_inl / num_iters << "\n";
-        std::cout << "avg trimm lsq " << avg_trimm_lsq / num_iters << "\n";
+    void runIRLSEuclideanTwoWeights (Model * model, Score * score, bool trimmed=false) {
+        irls_model.setDescriptor(model->returnDescriptor());
 
+        unsigned int max_score = 0;
+        unsigned int min_score = 10000000;
+        float avg_score = 0;
+        unsigned int num_samples, num_inliers;
+        for (unsigned int iter = 1; iter < num_lo_iters; iter++) {
+            estimator->setModelParameters(irls_model.returnDescriptor());
 
-        // end:
+            if (trimmed) {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           true, errors, true, weights_euc1, true, weights_euc2, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                std::sort (inliers, inliers+num_inliers, [&](int a, int b) {
+                    return errors[a] < errors[b];
+                });
+                estimator->EstimateModelNonMinimalSample(inliers, num_samples, weights_euc1, weights_euc2, irls_model);
+            } else {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           false, nullptr, true, weights_euc1, true, weights_euc2, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers - 1);
+                for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
+                    sample[smpl] = inliers[sample[smpl]];
+                }
+                estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_euc1, weights_euc2, irls_model);
+            }
+            irls_score.inlier_number = num_inliers;
+            irls_score.score = irls_score.inlier_number;
 
-//        quality->getScore(&irls_score, irls_model.returnDescriptor());
-//        std::cout << "irls iteration 20; inliers size " << irls_score.inlier_number << "\n";
+//            if (irls_score.bigger(score)) {
+//                score->copyFrom(irls_score);
+//                model->setDescriptor(irls_model.returnDescriptor());
+//            }
 
-//        if (irls_score.bigger(score)) {
-//            std::cout << "UPDATE SCORE\n";
-//            score->copyFrom(irls_score);
-//            model->setDescriptor(irls_model.returnDescriptor());
-//        }
-//        std::cout << "-----------------------------------------------\n";
+            std::cout << "irls trimmed "<< trimmed << " two euclidean iteration " << iter << "; inliers size " << num_inliers << "\n";
+            if (iter != 0 && max_score < num_inliers) max_score = num_inliers;
+            if (iter != 0 && min_score > num_inliers) min_score = num_inliers;
+            avg_score += num_inliers;
+        }
+        std::cout << "max score " << max_score << "\n";
+        std::cout << "min score " << min_score << "\n";
+        std::cout << "avg score " << avg_score / num_lo_iters << "\n";
+        std::cout << "-----------------------------------------------\n";
+
+    }
+    void runIRLSManhattanFourWeights (Model * model, Score * score, bool trimmed=false) {
+        irls_model.setDescriptor(model->returnDescriptor());
+
+        unsigned int max_score = 0;
+        unsigned int min_score = 10000000;
+        float avg_score = 0;
+        unsigned int num_samples, num_inliers;
+        for (unsigned int iter = 1; iter < num_lo_iters; iter++) {
+            estimator->setModelParameters(irls_model.returnDescriptor());
+
+            if (trimmed) {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           true, errors, false, nullptr, false, nullptr, true, weights_manh1, weights_manh2, weights_manh3, weights_manh4);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                std::sort (inliers, inliers+num_inliers, [&](int a, int b) {
+                    return errors[a] < errors[b];
+                });
+                estimator->EstimateModelNonMinimalSample(inliers, num_samples, weights_manh1, weights_manh2, weights_manh3, weights_manh4, irls_model);
+            } else {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           false, nullptr, false, nullptr, false, nullptr, true, weights_manh1, weights_manh2, weights_manh3, weights_manh4);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers - 1);
+                for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
+                    sample[smpl] = inliers[sample[smpl]];
+                }
+                estimator->EstimateModelNonMinimalSample(sample, num_samples, weights_manh1, weights_manh2, weights_manh3, weights_manh4, irls_model);
+            }
+            irls_score.inlier_number = num_inliers;
+            irls_score.score = irls_score.inlier_number;
+
+//            if (irls_score.bigger(score)) {
+//                score->copyFrom(irls_score);
+//                model->setDescriptor(irls_model.returnDescriptor());
+//            }
+
+            std::cout << "irls trimmed " << trimmed << " four manhattan iteration " << iter << "; inliers size " << num_inliers << "\n";
+            if (iter != 0 && max_score < num_inliers) max_score = num_inliers;
+            if (iter != 0 && min_score > num_inliers) min_score = num_inliers;
+            avg_score += num_inliers;
+        }
+        std::cout << "max score " << max_score << "\n";
+        std::cout << "min score " << min_score << "\n";
+        std::cout << "avg score " << avg_score / num_lo_iters << "\n";
+        std::cout << "-----------------------------------------------\n";
+
+    }
+    void runIRLSIdentityWeights (Model * model, Score * score, bool trimmed=false) {
+        irls_model.setDescriptor(model->returnDescriptor());
+
+        unsigned int max_score = 0;
+        unsigned int min_score = 10000000;
+        float avg_score = 0;
+        unsigned int num_samples, num_inliers;
+        for (unsigned int iter = 1; iter < num_lo_iters; iter++) {
+            estimator->setModelParameters(irls_model.returnDescriptor());
+
+            if (trimmed) {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           true, errors, false, nullptr, false, nullptr, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+                if (num_samples <= model->sample_size) continue;
+                std::sort (inliers, inliers+num_inliers, [&](unsigned int a, unsigned int b) {
+                    return errors[a] < errors[b];
+                });
+                estimator->EstimateModelNonMinimalSample(inliers, num_samples, irls_model);
+            } else {
+                num_inliers = estimator->getInliersWeights(irls_model.threshold, inliers,
+                                                           false, nullptr, false, nullptr, false, nullptr, false, nullptr, nullptr, nullptr, nullptr);
+                num_samples = std::min(max_sample_size, num_inliers);
+//                if (num_samples <= model->sample_size) continue;
+                uniformRandomGenerator.generateUniqueRandomSet(sample, num_samples, num_inliers - 1);
+                for (unsigned int smpl = 0; smpl < num_samples; smpl++) {
+                    sample[smpl] = inliers[sample[smpl]];
+                }
+                estimator->EstimateModelNonMinimalSample(sample, num_samples, irls_model);
+            }
+            irls_score.inlier_number = num_inliers;
+            irls_score.score = irls_score.inlier_number;
+
+//            if (irls_score.bigger(score)) {
+//                score->copyFrom(irls_score);
+//                model->setDescriptor(irls_model.returnDescriptor());
+//            }
+
+            std::cout << "irls trimmed " << trimmed << " identity weights iteration " << iter << "; inliers size " << num_inliers << "\n";
+            if (iter != 0 && max_score < num_inliers) max_score = num_inliers;
+            if (iter != 0 && min_score > num_inliers) min_score = num_inliers;
+            avg_score += num_inliers;
+        }
+        std::cout << "max score " << max_score << "\n";
+        std::cout << "min score " << min_score << "\n";
+        std::cout << "avg score " << avg_score / num_lo_iters << "\n";
+        std::cout << "-----------------------------------------------\n";
+
     }
 
     unsigned int getNumberIterations () override {

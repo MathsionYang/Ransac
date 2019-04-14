@@ -94,18 +94,29 @@ public:
         return true;
     }
 
-    void getWeights (float * weights_euc1, float * weights_euc2, float * weights_manh1,
-                     float * weights_manh2, float * weights_manh3, float * weights_manh4) override {
-        cv::Mat H = (cv::Mat_<float>(3,3) << h11, h12, h13, h21, h22, h23, h31, h32, h33);
-        H = H.inv();
-        float * H_ptr = (float *) H.data;
+    unsigned int getInliersWeights  (float threshold,
+                             int * inliers,
+                             bool get_error, float * errors,
+                             bool get_euc, float * weights_euc1,
+                             bool get_euc2, float * weights_euc2,
+                             bool get_manh, float * weights_manh1,
+                                            float * weights_manh2,
+                                            float * weights_manh3,
+                                            float * weights_manh4) override {
         float h_inv11, h_inv12, h_inv13, h_inv21, h_inv22, h_inv23, h_inv31, h_inv32, h_inv33;
-        h_inv11 = H_ptr[0]; h_inv12 = H_ptr[1]; h_inv13 = H_ptr[2];
-        h_inv21 = H_ptr[3]; h_inv22 = H_ptr[4]; h_inv23 = H_ptr[5];
-        h_inv31 = H_ptr[6]; h_inv32 = H_ptr[7]; h_inv33 = H_ptr[8];
+
+        if (get_euc2 || get_manh) {
+            cv::Mat H = (cv::Mat_<float>(3,3) << h11, h12, h13, h21, h22, h23, h31, h32, h33);
+            H = H.inv();
+            float * H_ptr = (float *) H.data;
+            h_inv11 = H_ptr[0]; h_inv12 = H_ptr[1]; h_inv13 = H_ptr[2];
+            h_inv21 = H_ptr[3]; h_inv22 = H_ptr[4]; h_inv23 = H_ptr[5];
+            h_inv31 = H_ptr[6]; h_inv32 = H_ptr[7]; h_inv33 = H_ptr[8];
+        }
 
         float x1, y1, x2, y2, est_x2, est_y2, est_z2, est_x1, est_y1, est_z1, error;
-        unsigned int smpl;
+        float err, euc1, euc2, manh1, manh2, manh3, manh4;
+        unsigned int smpl, num_inliers = 0;
         for (unsigned int pt = 0; pt < points_size; pt++) {
             smpl = 4*pt;
             x1 = points[smpl];
@@ -120,29 +131,46 @@ public:
             est_x2 /= est_z2;
             est_y2 /= est_z2;
 
-            est_x1 = h_inv11 * x2 + h_inv12 * y2 + h_inv13;
-            est_y1 = h_inv21 * x2 + h_inv22 * y2 + h_inv23;
-            est_z1 = h_inv31 * x2 + h_inv32 * y2 + h_inv33;
+            err = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
+            if (err >= threshold) continue;
 
-            est_x1 /= est_z1;
-            est_y1 /= est_z1;
+            inliers[num_inliers++] = pt;
 
-            float euc1 = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
-            float euc2 = sqrt ((x1 - est_x1) * (x1 - est_x1) + (y1 - est_y1) * (y1 - est_y1));
+            if (get_manh || get_euc2) {
+                est_x1 = h_inv11 * x2 + h_inv12 * y2 + h_inv13;
+                est_y1 = h_inv21 * x2 + h_inv22 * y2 + h_inv23;
+                est_z1 = h_inv31 * x2 + h_inv32 * y2 + h_inv33;
 
-            float manh1 = fabsf(x1 - est_x1);
-            float manh2 = fabsf(y1 - est_y1);
-            float manh3 = fabsf(x2 - est_x2);
-            float manh4 = fabsf(y2 - est_y2);
+                est_x1 /= est_z1;
+                est_y1 /= est_z1;
+            }
 
-            weights_euc1[pt] = euc1 < 1 ? 1 : 1 / euc1;
-            weights_euc2[pt] = euc2 < 1 ? 1 : 1 / euc2;
 
-            weights_manh1[pt] = manh1 < 1 ? 1 : 1 / manh1;
-            weights_manh2[pt] = manh2 < 1 ? 1 : 1 / manh2;
-            weights_manh3[pt] = manh3 < 1 ? 1 : 1 / manh3;
-            weights_manh4[pt] = manh4 < 1 ? 1 : 1 / manh4;
+            if (get_error) {
+                errors[pt] = err;
+            }
+
+            if (get_euc) {
+                weights_euc1[pt] = err < 1 ? 1 : 1 / err;
+            } else if (get_euc2) {
+                weights_euc1[pt] = err < 1 ? 1 : 1 / err;
+                euc2 = sqrt ((x1 - est_x1) * (x1 - est_x1) + (y1 - est_y1) * (y1 - est_y1));
+                weights_euc2[pt] = euc2 < 1 ? 1 : 1 / euc2;
+            }
+
+            if (get_manh) {
+                manh1 = fabsf(x1 - est_x1);
+                manh2 = fabsf(y1 - est_y1);
+                manh3 = fabsf(x2 - est_x2);
+                manh4 = fabsf(y2 - est_y2);
+
+                weights_manh1[pt] = manh1 < 1 ? 1 : 1 / manh1;
+                weights_manh2[pt] = manh2 < 1 ? 1 : 1 / manh2;
+                weights_manh3[pt] = manh3 < 1 ? 1 : 1 / manh3;
+                weights_manh4[pt] = manh4 < 1 ? 1 : 1 / manh4;
+            }
         }
+        return num_inliers;
     }
 
     bool LeastSquaresFitting (const int * const sample, unsigned int sample_size, Model &model) override {

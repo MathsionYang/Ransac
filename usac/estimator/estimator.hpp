@@ -35,8 +35,15 @@ public:
         std::cout << "NOT IMPLEMENTED EstimateModelNonMinimalSample in estimator\n";
     }
 
-    virtual void getWeights (float * weights_euc1, float * weights_euc2, float * weights_manh1,
-                             float * weights_manh2, float * weights_manh3, float * weights_manh4) {}
+    virtual unsigned int getInliersWeights (float threshold,
+                             int * inliers,
+                             bool get_error, float * errors,
+                             bool get_euc, float * weights_euc1,
+                             bool get_euc2, float * weights_euc2,
+                             bool get_manh, float * weights_manh1,
+                             float * weights_manh2,
+                             float * weights_manh3,
+                             float * weights_manh4) {}
 
     virtual bool isSubsetGood (const int * const sample) {
         return true;

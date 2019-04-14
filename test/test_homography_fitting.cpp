@@ -14,7 +14,7 @@ void Tests::testHomographyFitting() {
 //    exit (0);
 
     DATASET dataset = DATASET::Homogr_SIFT;
-    std::string img_name = "graf";
+    std::string img_name = "Brussels";
 
     ImageData gt_data (dataset, img_name);
 
@@ -51,7 +51,7 @@ void Tests::testHomographyFitting() {
      model.setSprt(0);
      model.setCellSize(50);
      model.setNeighborsType(NeighborsSearch::Grid);
-     model.ResetRandomGenerator(false);
+     model.ResetRandomGenerator(true);
 
     if (model.sampler ==  SAMPLER::Prosac) {
 //        test (sorted_points, &model, img_name, dataset, true, gt_sorted_inliers);
