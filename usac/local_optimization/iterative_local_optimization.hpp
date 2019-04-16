@@ -7,142 +7,129 @@
 
 #include "../quality/quality.hpp"
 #include "../random_generator/uniform_random_generator.hpp"
+#include "../quality/ransac_quality.hpp"
 
 class IterativeLocalOptimization : public LocalOptimization{
 private:
-    unsigned int max_iters, threshold_multiplier, sample_limit, points_size;
+    unsigned int max_iters, threshold_multiplier, sample_limit;
     bool is_sample_limit;
-    float threshold_step, threshold;
-    UniformRandomGenerator * uniformRandomGenerator;
+    float threshold_step, threshold, new_threshold;
+    UniformRandomGenerator uniformRandomGenerator;
     Estimator * estimator;
     Quality * quality;
-
-    int * lo_sample;
+    RansacScore lo_score;
+    Model lo_model;
+    int *lo_sample, *max_virtual_inliers;
     unsigned int lo_iterative_iters;
 public:
 
-    ~IterativeLocalOptimization() {
+    ~IterativeLocalOptimization() override {
+        delete[] max_virtual_inliers;
         if (is_sample_limit) {
             delete[] lo_sample;
         }
     }
-    IterativeLocalOptimization (unsigned int points_size_, Model * model, UniformRandomGenerator * uniformRandomGenerator_,
-                                Estimator * estimator_, Quality * quality_) {
-        points_size = points_size_;
+    IterativeLocalOptimization (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size) :lo_model(model) {
         max_iters = model->lo_iterative_iterations;
         threshold_multiplier = model->lo_threshold_multiplier;
-        is_sample_limit = model->lo == LocOpt ::InItFLORsc;
+        is_sample_limit = model->lo == LocOpt ::InItFLORsc || model->lo == LocOpt ::ItFLORsc;
         sample_limit = model->lo_sample_size;
         if (is_sample_limit) {
             lo_sample = new int [sample_limit];
         }
+        max_virtual_inliers = new int[points_size];
 
         threshold = model->threshold;
+        new_threshold = model->lo_threshold_multiplier * model->threshold;
         /*
          * reduce multiplier threshold K·θ by this number in each iteration.
          * In the last iteration there be original threshold θ.
          */
-        threshold_step = (threshold * threshold_multiplier - threshold) / max_iters;
+        threshold_step = (new_threshold - threshold) / max_iters;
 
-        uniformRandomGenerator = uniformRandomGenerator_;
+        // ------------- set random generator --------------
+        uniformRandomGenerator.setSubsetSize(sample_limit);
+        if (model->reset_random_generator) uniformRandomGenerator.resetTime();
+        // -----------------------------------
+
         estimator = estimator_;
         quality = quality_;
 
         lo_iterative_iters = 0;
     }
 
-    void GetModelScore (Model * model, Score * score) override {
-        int * inliers = new int[points_size];
-        quality->getInliers(model->returnDescriptor(), inliers);
-        GetScoreLimited(score, model, inliers);
-        delete[] inliers;
-    }
-
-     /*
-      * Iterative LO Ransac
-      * Reduce threshold of current model
-      * Estimate model parametres from limited sample size of lo model.
-      * Evaluate model
-      * Get inliers
-      * Repeat until iteration < lo iterative iterations
-      */
-
-    bool GetScoreLimited (Score * lo_score, Model * lo_model, int * lo_inliers) {
-        for (unsigned int iterations = 0; iterations < max_iters; iterations++) {
-            lo_model->threshold -= threshold_step;
-
-            // break if there are not enough inliers to estimate non minimal model
-            if (lo_score->inlier_number <= lo_model->sample_size) break;
-            if (lo_score->inlier_number > sample_limit) {
-                // if there are more inliers than limit for sample size then generate at random
-                // sample from LO model.
-                uniformRandomGenerator->generateUniqueRandomSet(lo_sample, lo_score->inlier_number-1);
-                for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
-                    lo_sample[smpl] = lo_inliers[lo_sample[smpl]];
-                }
-                if (! estimator->LeastSquaresFitting(lo_sample, sample_limit, *lo_model)) continue;
-            } else {
-                // if inliers less than sample limit then use all of them to estimate model.
-                // if estimation fails break iterative loop.
-                if (! estimator->LeastSquaresFitting(lo_inliers, lo_score->inlier_number, *lo_model)) break;
-            }
-
-            quality->getScore(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
-
-            // only for test
-            lo_iterative_iters++;
-            //
-        }
-
-        bool fail = false;
-        // if threshold differs, so there was fail.
-        if (fabsf (lo_model->threshold - threshold) > 0.00001) {
-            fail = true;
-            // get original threshold back in case lo iterative ransac had break.
-            lo_model->threshold = threshold;
-        }
-
-        return fail;
-    }
-
-
     /*
      * Iterative LO Ransac
+     * Get inliers of the best model or the model of Inner LO Ransac
      * Reduce threshold of current model
-     * Estimate model parametres with all inliers
+     * Estimate model parametres from limited sample size of lo model.
      * Evaluate model
      * Get inliers
      * Repeat until iteration < lo iterative iterations
      */
-    bool GetScoreUnlimited (Score * lo_score, Model * lo_model, Score * best_score, int * lo_inliers) {
+
+    void GetModelScore (Model * best_model, Score * best_score) override {
+        // Start evaluating a model with new threshold.
+        // multiply threshold K * θ
+        lo_model.threshold = new_threshold;
+        // get max virtual inliers. Note that they are nor real inliers, because we got them with bigger threshold.
+        quality->getScore(&lo_score, best_model->returnDescriptor(), lo_model.threshold, true, max_virtual_inliers);
+        
+        unsigned int max_virtual_inliers_number = lo_score.inlier_number;
+        
+        // return if there is small number of inliers
+        if (lo_score.inlier_number < sample_limit) return;
+
         for (unsigned int iterations = 0; iterations < max_iters; iterations++) {
-            lo_model->threshold -= threshold_step;
+            lo_model.threshold -= threshold_step;
 
-            // break if there are not enough inliers to estimate non minimal model
-            if (lo_score->inlier_number <= lo_model->sample_size) break;
-            if (! estimator->LeastSquaresFitting(lo_inliers, lo_score->inlier_number, *lo_model)) break;
-            quality->getScore(lo_score, lo_model->returnDescriptor(), lo_model->threshold, true, lo_inliers);
-
-            // break if best score is bigger, because after all points normalization and
-            // decreasing threshold lo score could not be bigger in next iterations.
-            if (best_score->bigger(lo_score)) {
-                break;
+            if (sample_limit) {
+                // if there are more inliers than limit for sample size then generate at random
+                // sample from LO model.
+                uniformRandomGenerator.generateUniqueRandomSet(lo_sample, lo_score.inlier_number-1);
+                for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
+                    lo_sample[smpl] = max_virtual_inliers[lo_sample[smpl]];
+                }
+                if (! estimator->LeastSquaresFitting(lo_sample, sample_limit, lo_model)) continue;
+            
+            } else {
+                // break if failed, very low probability that it will not fail in next iterations
+                if (!estimator->LeastSquaresFitting(max_virtual_inliers, lo_score.inlier_number, lo_model)) break;
             }
+
+            quality->getScore(&lo_score, lo_model.returnDescriptor(), lo_model.threshold);
+
             // only for test
             lo_iterative_iters++;
             //
+
+            // In case of unlimited sample:
+            // break if the best score is bigger, because after decreasing
+            // threshold lo score could not be bigger in next iterations.
+            if (! sample_limit && best_score->better(lo_score)) break;
+            
+            // Update max virtual inliers
+            if (lo_score.inlier_number > max_virtual_inliers_number) {
+                max_virtual_inliers_number = lo_score.inlier_number;
+                quality->getInliers(lo_model.returnDescriptor(), max_virtual_inliers, lo_model.threshold);
+            }
         }
 
-        bool fail = false;
-        // if threshold differs, so there was fail.
-        if (fabsf (lo_model->threshold - threshold) > 0.00001) {
-            fail = true;
-            // get original threshold back in case lo iterative ransac had break.
-            lo_model->threshold = threshold;
+        if (fabsf (lo_model.threshold - threshold) < 0.0001) {
+            std::cout << "Success\n";
+            // Success, threshold does not differ
+            // last score correspond to user-defined threshold. Inliers are real.
+            if (lo_score.better(best_score)) {
+                // update best model and best score
+                best_score->copyFrom(lo_score);
+                best_model->setDescriptor(lo_model.returnDescriptor());
+            }
+        } else {
+            std::cout << "Fail\n";
         }
 
-        return fail;
     }
+
     unsigned int getNumberIterations () override {
         return lo_iterative_iters;
     }

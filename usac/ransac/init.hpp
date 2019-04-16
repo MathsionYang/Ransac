@@ -23,6 +23,10 @@
 #include "../local_optimization/irls.hpp"
 #include "../local_optimization/graphcut.hpp"
 
+#include "../quality/msac_quality.hpp"
+#include "../quality/ransac_quality.hpp"
+#include "../quality/lms_quality.hpp"
+#include "../quality/mlesac_quality.hpp"
 
 
 void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points);

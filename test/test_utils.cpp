@@ -16,19 +16,19 @@ void Tests::testFindMedian () {
         }
 
         int max_range = 5000;
-        int arr[arr_size];
+        float arr[arr_size];
         for (int i = 0; i < arr_size; i++) {
             arr[i] = random() % max_range;
         }
 
         auto begin_time = std::chrono::steady_clock::now();
-        int med = findMedian(arr, arr_size);
+        float med = findMedian(arr, arr_size);
         time1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin_time).count();
 
         // check
         begin_time = std::chrono::steady_clock::now();
         std::sort(arr, arr + arr_size);
-        int med_gt;
+        float med_gt;
         if (arr_size % 2 == 0) {
             med_gt = (arr[arr_size / 2 - 1] + arr[arr_size / 2]) / 2;
         } else {

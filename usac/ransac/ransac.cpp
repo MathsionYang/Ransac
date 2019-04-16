@@ -69,8 +69,7 @@ void Ransac::run() {
                  quality->getScore(current_score, models[i].returnDescriptor());
             }
 
-//            std::cout << current_score->inlier_number << "\n";
-            if (current_score->bigger(best_score)) {
+            if (current_score->better(best_score)) {
 
                 // update current model and current score by inner and iterative local optimization
                 // if inlier number is too small, do not update
@@ -254,7 +253,7 @@ void Ransac::run_debug() {
           // std::cout << "Ransac, iteration " << iters << "; score " << current_score->inlier_number << "\n";
 //            std::cout << models[i]->returnDescriptor() << "\n\n";
 
-            if (current_score->bigger(best_score)) {
+            if (current_score->better(best_score)) {
 
 //                  std::cout << "update best score\n";
 

@@ -26,6 +26,12 @@ void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points
 void initScore (Score *& score, SCORE sc) {
     if (sc == SCORE::RANSAC) {
         score = new RansacScore;
+    } else if (sc == SCORE::MSAC) {
+        score = new MsacScore();
+    } else if (sc == SCORE::LMS) {
+        score = new LmsScore();
+    } else if (sc == SCORE::MLESAC) {
+        score = new MlesacScore();
     } else {
         std::cout << "not yet implemented! init::initscore\n";
     }
@@ -35,6 +41,12 @@ void initScore (Score *& score, SCORE sc) {
 void initQuality (Quality *& quality, SCORE sc) {
     if (sc == SCORE::RANSAC) {
         quality = new RansacQuality;
+    } else if (sc == SCORE::MSAC) {
+        quality = new MsacQuality;
+    } else if (sc == SCORE::LMS) {
+        quality = new LmsQuality;
+    } else if (sc == SCORE::MLESAC) {
+        quality = new MlesacQuality;
     } else {
         std::cout << "not yet implemented! init::initquality\n";
     }

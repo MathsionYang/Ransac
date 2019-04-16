@@ -29,15 +29,15 @@ protected:
     unsigned int points_size, sample_limit, sample_size, lo_inner_iterations;
     float threshold, spatial_coherence, sqr_thr;
 
-    int *inliers, *sample, *neighbors;
+    int *inliers_of_best_model, *sample, *neighbors;
     float * errors;
     unsigned int gc_iterations;
 public:
 
     ~GraphCut() override {
-        delete[] errors; delete[] inliers; delete[] sample;
+        delete[] errors; delete[] inliers_of_best_model; delete[] sample;
     }
-    
+
     GraphCut (Model * model, Estimator * estimator_, Quality * quality_, unsigned int points_size_) : gc_model (model) {
         spatial_coherence = model->spatial_coherence_gc;
         knn = model->k_nearest_neighbors;
@@ -52,7 +52,7 @@ public:
         sample_size = model->sample_size;
 
         errors = new float[points_size];
-        inliers = new int [points_size];
+        inliers_of_best_model = new int [points_size];
         sample = new int [sample_limit];
 
         // set uniform random generator
@@ -100,7 +100,7 @@ public:
             is_best_model_updated = false;
 
             // Build graph problem. Apply graph cut to G
-            labeling(best_model->returnDescriptor(), &gc_score, inliers);
+            labeling(best_model->returnDescriptor(), &gc_score, inliers_of_best_model);
 
             // if number of "virtual" inliers is too small then break
             if (gc_score.inlier_number <= sample_size) break;
@@ -113,7 +113,7 @@ public:
                     uniform_random_generator.generateUniqueRandomSet(sample, labeling_inliers_size-1);
                     // sample from inliers of labeling
                     for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
-                        sample[smpl] = inliers[sample[smpl]];
+                        sample[smpl] = inliers_of_best_model[sample[smpl]];
                     }
                     if (! estimator->EstimateModelNonMinimalSample(sample, sample_limit, gc_model)) {
                         break;
@@ -127,14 +127,14 @@ public:
                          */
                         break;
                     }
-                    if (! estimator->EstimateModelNonMinimalSample(inliers, labeling_inliers_size, gc_model)) {
+                    if (! estimator->EstimateModelNonMinimalSample(inliers_of_best_model, labeling_inliers_size, gc_model)) {
                         break;
                     }
                 }
 
                 quality->getScore(&gc_score, gc_model.returnDescriptor());
 
-                if (gc_score.bigger(best_score)) {
+                if (gc_score.better(best_score)) {
                     is_best_model_updated = true;
                     best_score->copyFrom(gc_score);
                     best_model->setDescriptor(gc_model.returnDescriptor());
@@ -156,7 +156,7 @@ private:
          * This LSQ must give better model for next GC labeling.
          */
         // use gc_score variable, but we are not getting gc score.
-        quality->getScore(&gc_score, model->returnDescriptor(), model->threshold, true, inliers);
+        quality->getScore(&gc_score, model->returnDescriptor(), model->threshold, true, inliers_of_best_model);
 
         // return if not enough inliers
         if (gc_score.inlier_number <= model->sample_size)
@@ -166,19 +166,19 @@ private:
 
         if (gc_score.inlier_number < one_step_lo_sample_limit) {
             // if score is less than limit number sample then take estimation of all inliers
-            estimator->EstimateModelNonMinimalSample(inliers, gc_score.inlier_number, *model);
+            estimator->EstimateModelNonMinimalSample(inliers_of_best_model, gc_score.inlier_number, *model);
         } else {
             // otherwise take some inliers as sample at random
             if (model->sampler == SAMPLER::Prosac) {
                 // if we use prosac sample, so points are ordered by some score,
                 // so take first N inliers, because they have higher score
                 for (unsigned int smpl = 0; smpl < one_step_lo_sample_limit; smpl++) {
-                    sample[smpl] = inliers[smpl];
+                    sample[smpl] = inliers_of_best_model[smpl];
                 }
             } else {
                 uniform_random_generator.generateUniqueRandomSet(sample, one_step_lo_sample_limit, gc_score.inlier_number-1);
                 for (unsigned int smpl = 0; smpl < one_step_lo_sample_limit; smpl++) {
-                    sample[smpl] = inliers[sample[smpl]];
+                    sample[smpl] = inliers_of_best_model[sample[smpl]];
                 }
             }
 

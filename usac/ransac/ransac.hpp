@@ -61,9 +61,11 @@ public:
         initScore(current_score, model->score);
         initScore(best_score, model->score);
 
+        std::cout << current_score->score << " score1\n";
+        std::cout << best_score->score << " score2\n";
+
         // Init quality
         initQuality (quality, model->score);
-
         quality->init(points_size, model->threshold, estimator);
         //
 

@@ -99,6 +99,7 @@ public:
                              bool get_error, float * errors,
                              bool get_euc, float * weights_euc1,
                              bool get_euc2, float * weights_euc2,
+                             bool sampson, float * weights_sampson,
                              bool get_manh, float * weights_manh1,
                                             float * weights_manh2,
                                             float * weights_manh3,
@@ -114,8 +115,8 @@ public:
             h_inv31 = H_ptr[6]; h_inv32 = H_ptr[7]; h_inv33 = H_ptr[8];
         }
 
-        float x1, y1, x2, y2, est_x2, est_y2, est_z2, est_x1, est_y1, est_z1, error;
-        float err, euc1, euc2, manh1, manh2, manh3, manh4;
+        float x1, y1, x2, y2, est_x2, est_y2, est_z2, est_x1, est_y1, est_z1;
+        float err, euc2, manh1, manh2, manh3, manh4;
         unsigned int smpl, num_inliers = 0;
         for (unsigned int pt = 0; pt < points_size; pt++) {
             smpl = 4*pt;
@@ -151,11 +152,11 @@ public:
             }
 
             if (get_euc) {
-                weights_euc1[pt] = err < 1 ? 1 : 1 / err;
+                weights_euc1[pt] = err < 1 ? 1 : 1 / Math::fast_pow(err, 1);
             } else if (get_euc2) {
-                weights_euc1[pt] = err < 1 ? 1 : 1 / err;
+                weights_euc1[pt] = err < 1 ? 1 : 1 / Math::fast_pow(err, 1);
                 euc2 = sqrt ((x1 - est_x1) * (x1 - est_x1) + (y1 - est_y1) * (y1 - est_y1));
-                weights_euc2[pt] = euc2 < 1 ? 1 : 1 / euc2;
+                weights_euc2[pt] = euc2 < 1 ? 1 : 1 / Math::fast_pow(euc2, 1);
             }
 
             if (get_manh) {
@@ -196,34 +197,6 @@ public:
         float error = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
         // error >= 0
         return error;
-    }
-
-    unsigned int GetNumInliers (float threshold, bool get_inliers, int * inliers) override {
-        float x1, y1, x2, y2, est_x2, est_y2, est_z2, error;
-        unsigned int smpl;
-        int num_inliers = 0;
-        for (unsigned int pt = 0; pt < points_size; pt++) {
-            smpl = 4*pt;
-            x1 = points[smpl];
-            y1 = points[smpl+1];
-            x2 = points[smpl+2];
-            y2 = points[smpl+3];
-
-            est_x2 = h11 * x1 + h12 * y1 + h13;
-            est_y2 = h21 * x1 + h22 * y1 + h23;
-            est_z2 = h31 * x1 + h32 * y1 + h33; // h33 = 1
-
-            est_x2 /= est_z2;
-            est_y2 /= est_z2;
-            
-            error = sqrt ((x2 - est_x2) * (x2 - est_x2) + (y2 - est_y2) * (y2 - est_y2));
-            if (error < threshold) {
-                if (get_inliers) inliers[num_inliers] = pt;
-                num_inliers++;
-            }
-        }
-
-        return num_inliers;
     }
 
     bool isSubsetGood (const int * const sample) override {

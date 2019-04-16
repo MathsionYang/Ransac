@@ -9,26 +9,12 @@
 
 class RansacScore : public Score {
 public:
-    // priority for inlier number
-    bool bigger (const Score * const score2) override {
-        if (inlier_number > score2->inlier_number) return true;
-        if (inlier_number == score2->inlier_number) return score > score2->score;
-        return false;
+    // priority to inlier number
+    bool better(const Score * const score2) override {
+        return inlier_number > score2->inlier_number;
     }
-    bool bigger (const Score& score2) override {
-        if (inlier_number > score2.inlier_number) return true;
-        if (inlier_number == score2.inlier_number) return score > score2.score;
-        return false;
-    }
-
-    void copyFrom (const Score * const score_to_copy) override {
-        score = score_to_copy->score;
-        inlier_number = score_to_copy->inlier_number;
-    }
-
-    void copyFrom (const Score &score_to_copy) override {
-        score = score_to_copy.score;
-        inlier_number = score_to_copy.inlier_number;
+    bool better(const Score &score2) override {
+        return inlier_number > score2.inlier_number;
     }
 };
 
@@ -49,7 +35,6 @@ public:
         estimator->setModelParameters(model);
 
         unsigned int inlier_number = 0;
-        float sum_errors = 0;
 
         if (parallel && !get_inliers) {
             #pragma omp parallel for reduction (+:inlier_number)
@@ -59,29 +44,23 @@ public:
                 }
             }
         } else {
-            // inlier_number = estimator->GetNumInliers(threshold, get_inliers, inliers);
-            float err;
             if (get_inliers) {
                 for (unsigned int point = 0; point < points_size; point++) {
-                    err = estimator->GetError(point);
-                    if (err < threshold) {
+                    if (estimator->GetError(point) < threshold) {
                         inliers[inlier_number++] = point;
-                        sum_errors += err;
                     }
                 }
             } else {
                 for (unsigned int point = 0; point < points_size; point++) {
-                    err = estimator->GetError(point);
-                    if (err < threshold) {
+                    if (estimator->GetError(point) < threshold) {
                         inlier_number++;
-                        sum_errors += err;
                     }
                 }
             }
         }
 
         score->inlier_number = inlier_number;
-        score->score = sum_errors;
+        score->score = inlier_number;
     }
 };
 

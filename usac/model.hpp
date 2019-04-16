@@ -10,8 +10,8 @@
 enum ESTIMATOR  { Line2d, Homography, Fundamental, Essential, Affine };
 enum SAMPLER  { Uniform, ProgressiveNAPSAC, Napsac, Prosac, Evsac, ProsacNapsac };
 enum NeighborsSearch {NullN, Nanoflann, Grid};
-enum LocOpt {NullLO, InItLORsc, InItFLORsc, GC, IRLS};
-enum SCORE {RANSAC, MSAC, LMS};
+enum LocOpt {NullLO, InLORsc, ItLORsc, ItFLORsc, InItLORsc, InItFLORsc, GC, IRLS};
+enum SCORE {RANSAC, MSAC, LMS, MLESAC};
 
 class Model {
 public:
@@ -25,9 +25,9 @@ public:
 
 	// Local Optimization parameters
 	LocOpt lo = NullLO;
-    unsigned int lo_sample_size = 14;
+    unsigned int lo_sample_size = 12;
 	unsigned int lo_iterative_iterations = 4;
-    unsigned int lo_inner_iterations = 10; // 10
+    unsigned int lo_inner_iterations = 10; // 20
     unsigned int lo_threshold_multiplier = 10;
 
     // Graph cut
@@ -62,7 +62,10 @@ public:
 		ESTIMATOR estimator_, SAMPLER sampler_) {
 		if (estimator_ == ESTIMATOR::Line2d) sample_size = 2;
 		else if (estimator_ == ESTIMATOR::Essential) sample_size = 5;
-		else if (estimator_ == ESTIMATOR::Fundamental) sample_size = 7;
+		else if (estimator_ == ESTIMATOR::Fundamental) {
+			sample_size = 7;
+			lo_sample_size = 14;
+		}
 		else if (estimator_ == ESTIMATOR::Homography) sample_size = 4;
 		else if (estimator_ == ESTIMATOR::Affine) sample_size = 3;
 		else {
@@ -116,17 +119,14 @@ public:
 		this->threshold = threshold;
 	}
 
-	void setSampleNumber (float sample_number) {
-		this->sample_size = sample_number;
-	}
-
 	void setDesiredProbability (float desired_prob) {
 		this->confidence = desired_prob;
 	}
 
-	void setKNearestNeighbors (int k_nearest_neighbors) {
+	void setKNearestNeighbors (unsigned int k_nearest_neighbors) {
 	    this->k_nearest_neighbors = k_nearest_neighbors;
 	}
+
 	void copyFrom (const Model * const model) {
         threshold = model->threshold;
         sample_size = model->sample_size;

@@ -62,7 +62,6 @@ public:
         cv::Mat_<float> F;
 
         if (! solver.EightPointsAlgorithm(sample, sample_size, F)) {
-//        if (! EightPointsAlgorithmEigen(sample, sample_size, F)) {
                 return false;
         }
 
@@ -104,13 +103,12 @@ public:
         float F_pt1_x = f11 * x1 + f12 * y1 + f13;
         float F_pt1_y = f21 * x1 + f22 * y1 + f23;
 
-        // Here F is transposed
-        float F_pt2_x = f11 * x2 + f21 * y2 + f31;
-        float F_pt2_y = f12 * x2 + f22 * y2 + f32;
+        float pt2_F_x = x2 * f11 + y2 * f21 + f31;
+        float pt2_F_y = x2 * f12 + y2 * f22 + f32;
 
         float pt2_F_pt1 = x2 * F_pt1_x + y2 * F_pt1_y + f31 * x1 +  f32 * y1 + f33; // f33 = 1
 
-        float error = (pt2_F_pt1 * pt2_F_pt1) / (F_pt1_x * F_pt1_x + F_pt1_y * F_pt1_y + F_pt2_x * F_pt2_x + F_pt2_y * F_pt2_y);
+        float error = (pt2_F_pt1 * pt2_F_pt1) / (F_pt1_x * F_pt1_x + F_pt1_y * F_pt1_y + pt2_F_x * pt2_F_x + pt2_F_y * pt2_F_y);
 
         // debug
 //        cv::Mat pt1 = (cv::Mat_<double>(3,1) << x1, y1, 1);
@@ -129,32 +127,63 @@ public:
         return error;
     }
 
-    void GetError(float * weights, float threshold, int * inliers, unsigned int * inliers_size) override {
-        unsigned int smpl;
-        float x1, y1, x2, y2, F_pt1_x, F_pt1_y, F_pt2_x, F_pt2_y, pt2_F_pt1, w, error = 0;
-        unsigned int num_inliers = 0;
-        for (unsigned int i = 0; i < points_size; i++) {
-            smpl = 4*i;
+    unsigned int getInliersWeights  (float threshold,
+                                     int * inliers,
+                                     bool get_error, float * errors,
+                                     bool get_euc, float * weights_euc1,
+                                     bool get_euc2, float * weights_euc2,
+                                     bool sampson, float * weights_sampson,
+                                     bool get_manh, float * weights_manh1,
+                                     float * weights_manh2,
+                                     float * weights_manh3,
+                                     float * weights_manh4) override {
+
+        float x1, y1, x2, y2, F_pt1_x, F_pt1_y, pt2_F_x, pt2_F_y, pt2_F_pt1, F_pt1_z, pt2_F_z;
+        float err, dist_to2line, dist_to1line;
+        unsigned int smpl, num_inliers = 0;
+        for (unsigned int pt = 0; pt < points_size; pt++) {
+            smpl = 4*pt;
             x1 = points[smpl];
             y1 = points[smpl+1];
             x2 = points[smpl+2];
             y2 = points[smpl+3];
 
+            // line on 2 correspondence
             F_pt1_x = f11 * x1 + f12 * y1 + f13;
             F_pt1_y = f21 * x1 + f22 * y1 + f23;
-            F_pt2_x = f11 * x2 + f21 * y2 + f31;
-            F_pt2_y = f12 * x2 + f22 * y2 + f32;
 
-            pt2_F_pt1 = x2 * F_pt1_x + y2 * F_pt1_y + f31 * x1 +  f32 * y1 +  f33;
-            w = (F_pt1_x * F_pt1_x + F_pt1_y * F_pt1_y + F_pt2_x * F_pt2_x + F_pt2_y * F_pt2_y);
-            weights[i] = w;
+            // line on 1 correspondence
+            pt2_F_x = x2 * f11 + y2 * f21 + f31;
+            pt2_F_y = x2 * f12 + y2 * f22 + f32;
 
-            error = (pt2_F_pt1 * pt2_F_pt1) / w;
-            if (error < threshold) {
-                inliers[num_inliers++] = i;
+            pt2_F_pt1 = x2 * F_pt1_x + y2 * F_pt1_y + f31 * x1 +  f32 * y1 + f33; // f33 = 1
+
+            err = (pt2_F_pt1 * pt2_F_pt1) / (F_pt1_x * F_pt1_x + F_pt1_y * F_pt1_y + pt2_F_x * pt2_F_x + pt2_F_y * pt2_F_y);
+
+            if (err >= threshold) continue;
+            inliers[num_inliers++] = pt;
+
+            if (get_error) {
+                errors[pt] = err;
             }
+
+            if (sampson) {
+                weights_sampson[pt] = err < 1 ? 1 : 1 / err;
+            }
+
+            if (get_euc2) {
+                F_pt1_z = f31 * x1 + f32 * y1 + f33;
+                pt2_F_z = f13 * x1 + f23 * y1 + f33;
+
+                dist_to1line = (pt2_F_x * x1 + pt2_F_y * y1 + pt2_F_z) / sqrt(pt2_F_x * pt2_F_x + pt2_F_y * pt2_F_y);
+                dist_to2line = (F_pt1_x * x2 + F_pt1_y * y2 + F_pt1_z) / sqrt(F_pt1_x * F_pt1_x + F_pt1_y * F_pt1_y);
+
+                weights_euc1[pt] = dist_to1line < 1 ? 1 : 1 / dist_to1line;
+                weights_euc2[pt] = dist_to2line < 1 ? 1 : 1 / dist_to2line;
+            }
+
         }
-        *inliers_size = num_inliers;
+        return num_inliers;
     }
 
 

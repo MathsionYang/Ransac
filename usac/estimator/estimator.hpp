@@ -40,6 +40,7 @@ public:
                              bool get_error, float * errors,
                              bool get_euc, float * weights_euc1,
                              bool get_euc2, float * weights_euc2,
+                             bool sampson, float * weights_sampson,
                              bool get_manh, float * weights_manh1,
                              float * weights_manh2,
                              float * weights_manh3,
@@ -52,9 +53,7 @@ public:
     // use inline
     virtual float GetError(unsigned int pidx) = 0;
     virtual unsigned int GetNumInliers (float threshold, bool get_inliers=false, int * inliers=nullptr) { return 0; }
-    virtual void GetError(float * weights, float threshold, int * inliers, unsigned int * inliers_size) {
-        std::cout << "NOT IMPLEMENTED GetError (float * weights) in estimator\n";
-    }
+
     virtual int SampleNumber() = 0;
 
     virtual void setModelParameters (const cv::Mat& model) = 0;

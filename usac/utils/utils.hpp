@@ -13,8 +13,8 @@ void densitySort (const cv::Mat &points, unsigned int knn, cv::Mat &sorted_point
 
 void splitFilename (const std::string &filename, std::string &path, std::string &name, std::string &ext);
 
-int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsigned int right);
-int findMedian (int * array, unsigned int length);
+float quicksort_median (float * array, unsigned int k_minth, unsigned int left, unsigned int right);
+float findMedian (float * array, unsigned int length);
 
 void solveLSQWithQR (cv::Mat& x, const cv::Mat& A, const cv::Mat& b);
 

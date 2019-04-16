@@ -13,14 +13,22 @@
 class Score {
 public:
     virtual ~Score() = default;
-
     unsigned int inlier_number = 0;
     float score = 0;
 
-    virtual bool bigger (const Score * const score2) = 0;
-    virtual bool bigger (const Score &score2) = 0;
-    virtual void copyFrom (const Score * const score2) = 0;
-    virtual void copyFrom (const Score &score2) = 0;
+    virtual bool better(const Score * const score2) = 0;
+    virtual bool better(const Score &score2) = 0;
+
+    // use inline
+    void copyFrom (const Score * const score_to_copy) {
+        score = score_to_copy->score;
+        inlier_number = score_to_copy->inlier_number;
+    }
+
+    void copyFrom (const Score &score_to_copy) {
+        score = score_to_copy.score;
+        inlier_number = score_to_copy.inlier_number;
+    }
 };
 
 class Quality {
@@ -34,11 +42,12 @@ public:
 
     virtual bool isInit () { return isinit; }
 
-    void init (unsigned int points_size_, float theshold_, Estimator * estimator_) {
+    void init (unsigned int points_size_, float threshold_, Estimator * estimator_) {
         points_size = points_size_;
-        threshold = theshold_;
+        threshold = threshold_;
         estimator = estimator_;
         isinit = true;
+        std::cout << "thr " <<threshold << "\n";
     }
 
     /*
@@ -62,6 +71,22 @@ public:
             }
         }
     }
+
+    void getInliers (const cv::Mat& model, int * inliers, float threshold) {
+        // Note class Quality should be initialized
+        assert(isinit);
+
+        estimator->setModelParameters(model);
+
+        int num_inliers = 0;
+        for (unsigned int point = 0; point < points_size; point++) {
+            if (estimator->GetError(point) < threshold) {
+                inliers[num_inliers] = point;
+                num_inliers++;
+            }
+        }
+    }
+
 
     static void getInliers (Estimator * estimator, const cv::Mat &model, float threshold, unsigned int points_size, std::vector<int> &inliers) {
         estimator->setModelParameters(model);

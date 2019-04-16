@@ -361,7 +361,53 @@ public:
         }
     }
 
-};
+    static void ManuallySaveGoodPoints (DATASET dataset, const std::string &img_name, bool save) {
+        ImageData img_data (dataset, img_name);
+        cv::Mat pts = img_data.getPoints();
+        cv::Mat spts = img_data.getSortedPoints();
 
+        cv::Mat img1 = img_data.getImage1();
+        cv::Mat img2 = img_data.getImage2();
+
+        cv::Mat img11, img22;
+        cv::Mat good_points, good_spoints;
+
+        for (int i = 0; i < pts.rows; i++) {
+            img11 = img1.clone();
+            img22 = img2.clone();
+
+            cv::circle (img11, cv::Point_<float>(pts.at<float>(i, 0), pts.at<float>(i, 1)), 15, cv::Scalar(0, 255, 255), -1);
+            cv::circle (img22, cv::Point_<float>(pts.at<float>(i, 2), pts.at<float>(i, 3)), 15, cv::Scalar(0, 255, 255), -1);
+
+            cv::hconcat(img11, img22, img11);
+            cv::imshow("point "+std::to_string(i), img11);
+
+            int key = cv::waitKey(0);
+            if (key == 103) { // key 'g' (means good)
+                good_points.push_back(pts.row(i));
+                good_spoints.push_back(spts.row(i));
+            } else if (key == 27) { // key 'esc' (escape)
+                cv::destroyAllWindows();
+                break;
+            }
+
+            // std::cout << "key = " << key << "\n";
+            cv::destroyAllWindows();
+        }
+
+        if (save) {
+            std::ofstream file_pts2save (img_name);
+            std::ofstream file_spts2save (img_name);
+            for (int i = 0; i < good_points.rows; i++) {
+                file_pts2save << good_points.at<float>(i,0) << " " << good_points.at<float>(i,1) << " " <<
+                                 good_points.at<float>(i,2) << " " << good_points.at<float>(i,3) << "\n";
+                file_spts2save << good_spoints.at<float>(i,0) << " " << good_spoints.at<float>(i,1) << " " <<
+                                  good_spoints.at<float>(i,2) << " " << good_spoints.at<float>(i,3) << "\n";
+            }
+            file_pts2save.close();
+            file_spts2save.close();
+        }
+    }
+};
 
 #endif //RANSAC_DRAWING_H

@@ -89,18 +89,13 @@ void solveLSQWithQR (cv::Mat& x, const cv::Mat& A, const cv::Mat& b) {
 }
 
 
-void swap(int* a, int* b) {
-    int t = *a;
-    *a = *b;
-    *b = t;
-}
 
-int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsigned int right) {
+float quicksort_median (float * array, unsigned int k_minth, unsigned int left, unsigned int right) {
     unsigned int lenght = right - left;
     if (lenght == 0) {
         return array[left];
     }
-    int pivot_val = array[right];
+    float pivot_val = array[right];
     int j;
     int right_ = right-1;
     unsigned int values_less_eq = 1;
@@ -109,7 +104,9 @@ int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsi
             j++;
             values_less_eq++;
         } else {
-            swap(&array[j], &array[right_]);
+            float temp = array[j];
+            array[j] = array[right_];
+            array[right_] = temp;
             right_--;
         }
     }
@@ -123,7 +120,7 @@ int quicksort_median (int * array, unsigned int k_minth, unsigned int left, unsi
 }
 
 // find median using quicksort with average O(n) complexity. Worst case is O(n^2).
-int findMedian (int * array, unsigned int length) {
+float findMedian (float * array, unsigned int length) {
     if (length % 2 == 1) {
         // odd number of values
         return quicksort_median (array, length/2+1, 0, length-1);
