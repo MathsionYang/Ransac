@@ -28,23 +28,29 @@
 #include "../quality/lms_quality.hpp"
 #include "../quality/mlesac_quality.hpp"
 
+#include "../degeneracy/fundamental_degeneracy.hpp"
 
-void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points);
+class Init {
+public:
+    static void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points);
 // ----------------------------------------------------------------------------------------
-void initScore (Score *& score, SCORE sc);
+    static void initScore (Score *& score, SCORE sc);
 // ----------------------------------------------------------------------------------------
-void initQuality (Quality *& quality, SCORE sc);
+    static void initDegeneracy (Degeneracy *& degeneracy, Quality * quality, cv::InputArray points, Model * model);
 // ----------------------------------------------------------------------------------------
-void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points);
+    static void initQuality (Quality *& quality, SCORE sc);
 // ----------------------------------------------------------------------------------------
-void initTerminationCriteria (TerminationCriteria *& termination_criteria,
-        const Model * const model, unsigned int points_size);
+    static void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points);
+// ----------------------------------------------------------------------------------------
+    static void initTerminationCriteria (TerminationCriteria *& termination_criteria,
+                                  const Model * const model, unsigned int points_size);
 
-void initProsacTerminationCriteria (TerminationCriteria *& termination_criteria, Sampler *& prosac_sampler,
-            const Model * const model, Estimator * estimator, unsigned int points_size);
+    static void initProsacTerminationCriteria (TerminationCriteria *& termination_criteria, Sampler *& prosac_sampler,
+                                        const Model * const model, Estimator * estimator, unsigned int points_size);
 // ----------------------------------------------------------------------------------------
-void initLocalOptimization (LocalOptimization *& local_optimization, Model * model, Estimator * estimator,
-    Quality * quility, unsigned int points_size);
+    static void initLocalOptimization (LocalOptimization *& local_optimization, Model * model, Estimator * estimator,
+                                Quality * quility, unsigned int points_size);
+};
 
 
 

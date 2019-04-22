@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #include "dlt.hpp"
 bool DLt::DLT4pSVD (const int * const sample, cv::Mat &H) {
     float x1, y1, x2, y2;
@@ -39,6 +35,7 @@ bool DLt::DLT4pSVD (const int * const sample, cv::Mat &H) {
         (*A_ptr++) = y2;
     }
 
+
     cv::SVD::compute(A, S, U, Vt);
 
     if (Vt.empty ()) {
@@ -46,6 +43,7 @@ bool DLt::DLT4pSVD (const int * const sample, cv::Mat &H) {
     }
 
     H = cv::Mat_<float>(Vt.row(Vt.rows-1).reshape (3,3));
+    H = H / H.at<float>(2,2);
 
     return true;
 }

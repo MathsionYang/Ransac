@@ -14,10 +14,10 @@ public:
     /*
      * Save results to file
      */
-    static void saveResult (const Model * const model, RansacOutput * const ransacOutput) {
+    static void saveResult (RansacOutput * const ransacOutput) {
         std::ofstream write_log;
-        std::string filename = "../results/" + Tests::sampler2string(model->sampler)+"_"+
-                Tests::estimator2string(model->estimator)+".txt";
+        std::string filename = "../results/" + Tests::sampler2string(ransacOutput->getModel()->sampler)+"_"+
+                Tests::estimator2string(ransacOutput->getModel()->estimator)+".txt";
         write_log.open (filename);
         write_log << ransacOutput->getTimeMicroSeconds() <<"\n";
         write_log << (ransacOutput->getNumberOfMainIterations() + ransacOutput->getNUmberOfLOIterarations()) <<"\n";
@@ -28,10 +28,10 @@ public:
     /*
      * Read results from saved file and compare with current results.
      */
-    static void compare (const Model * const model, RansacOutput * const ransacOutput) {
+    static void compare (RansacOutput * const ransacOutput) {
         std::ifstream read_log;
-        std::string filename = "../results/" + Tests::sampler2string(model->sampler)+"_"+
-                                               Tests::estimator2string(model->estimator) +".txt";
+        std::string filename = "../results/" + Tests::sampler2string(ransacOutput->getModel()->sampler)+"_"+
+                                               Tests::estimator2string(ransacOutput->getModel()->estimator) +".txt";
         read_log.open(filename);
         float time;
         int iters, points_under_treshold;

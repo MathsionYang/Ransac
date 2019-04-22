@@ -108,7 +108,7 @@ public:
 //        std::cout << N << " times \n";
         
         Estimator * estimator;
-        initEstimator(estimator, model->estimator, points);
+        Init::initEstimator(estimator, model->estimator, points);
 
         std::vector<long> times(N);
         std::vector<float> num_inlierss(N);
@@ -269,7 +269,7 @@ public:
                             int N_runs, float *avg_err, float * avg_time) {
         cv::Mat_<float> m;
         Estimator * estimator;
-        initEstimator(estimator, model->estimator, points);
+        Init::initEstimator(estimator, model->estimator, points);
 
         float errors = 0, time = 0;
         for (unsigned int run = 0; run < N_runs; run++) {

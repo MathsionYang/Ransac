@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef RANSAC_PROSAC_SAMPLER_H
 #define RANSAC_PROSAC_SAMPLER_H
 
@@ -67,7 +63,9 @@ public:
         // In our experiments, the parameter was set to T_N = 200000
         growth_max_samples = 200000; // model->max_iters
 
-        if (reset_time) randomGenerator.resetTime();
+        if (reset_time) {
+            randomGenerator.resetTime();
+        }
         
         growth_function = new unsigned int[points_size];
         // The data points in U_N are sorted in descending order w.r.t. the quality function q.

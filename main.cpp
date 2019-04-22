@@ -2,6 +2,9 @@
 
 #include "test/tests.h"
 #include "helper/drawing/Drawing.h"
+#include "usac/degeneracy/degeneracy.hpp"
+#include "usac/degeneracy/fundamental_degeneracy.hpp"
+
 
 int main (int args, char ** argv) {
 
@@ -11,8 +14,8 @@ int main (int args, char ** argv) {
 
 //     run tests
 //     Tests::testLineFitting();
-     Tests::testHomographyFitting();
-//     Tests::testFundamentalFitting();
+//     Tests::testHomographyFitting();
+     Tests::testFundamentalFitting();
      // Tests::testEssentialFitting();
      // Tests::testAffineFitting();
 	// Tests::testDensityProsac();

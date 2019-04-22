@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef USAC_ITERATIVELOCALOPTIMIZATION_H
 #define USAC_ITERATIVELOCALOPTIMIZATION_H
 
@@ -19,12 +15,12 @@ private:
     Quality * quality;
     RansacScore lo_score;
     Model lo_model;
-    int *lo_sample, *max_virtual_inliers;
+    int *lo_sample, *virtual_inliers;
     unsigned int lo_iterative_iters;
 public:
 
     ~IterativeLocalOptimization() override {
-        delete[] max_virtual_inliers;
+        delete[] virtual_inliers;
         if (is_sample_limit) {
             delete[] lo_sample;
         }
@@ -37,7 +33,7 @@ public:
         if (is_sample_limit) {
             lo_sample = new int [sample_limit];
         }
-        max_virtual_inliers = new int[points_size];
+        virtual_inliers = new int[points_size];
 
         threshold = model->threshold;
         new_threshold = model->lo_threshold_multiplier * model->threshold;
@@ -73,9 +69,7 @@ public:
         // multiply threshold K * θ
         lo_model.threshold = new_threshold;
         // get max virtual inliers. Note that they are nor real inliers, because we got them with bigger threshold.
-        quality->getScore(&lo_score, best_model->returnDescriptor(), lo_model.threshold, true, max_virtual_inliers);
-        
-        unsigned int max_virtual_inliers_number = lo_score.inlier_number;
+        quality->getScore(&lo_score, best_model->returnDescriptor(), lo_model.threshold, true, virtual_inliers);
         
         // return if there is small number of inliers
         if (lo_score.inlier_number < sample_limit) return;
@@ -88,16 +82,17 @@ public:
                 // sample from LO model.
                 uniformRandomGenerator.generateUniqueRandomSet(lo_sample, lo_score.inlier_number-1);
                 for (unsigned int smpl = 0; smpl < sample_limit; smpl++) {
-                    lo_sample[smpl] = max_virtual_inliers[lo_sample[smpl]];
+                    lo_sample[smpl] = virtual_inliers[lo_sample[smpl]];
                 }
                 if (! estimator->LeastSquaresFitting(lo_sample, sample_limit, lo_model)) continue;
             
             } else {
                 // break if failed, very low probability that it will not fail in next iterations
-                if (!estimator->LeastSquaresFitting(max_virtual_inliers, lo_score.inlier_number, lo_model)) break;
+                if (!estimator->LeastSquaresFitting(virtual_inliers, lo_score.inlier_number, lo_model)) break;
             }
 
-            quality->getScore(&lo_score, lo_model.returnDescriptor(), lo_model.threshold);
+            // Get score and update virtual inliers
+            quality->getScore(&lo_score, lo_model.returnDescriptor(), lo_model.threshold, true, virtual_inliers);
 
             // only for test
             lo_iterative_iters++;
@@ -107,12 +102,6 @@ public:
             // break if the best score is bigger, because after decreasing
             // threshold lo score could not be bigger in next iterations.
             if (! sample_limit && best_score->better(lo_score)) break;
-            
-            // Update max virtual inliers
-            if (lo_score.inlier_number > max_virtual_inliers_number) {
-                max_virtual_inliers_number = lo_score.inlier_number;
-                quality->getInliers(lo_model.returnDescriptor(), max_virtual_inliers, lo_model.threshold);
-            }
         }
 
         if (fabsf (lo_model.threshold - threshold) < 0.0001) {

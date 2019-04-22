@@ -3,6 +3,7 @@
 void Generate2DLinePoints(float noise, int inlier_number, int outlier_number,
                              int border_x, int border_y, std::vector<cv::Point2f> &points, cv::Mat &gt_model);
 
+
 void generate_syntectic_dataset () {
     std::vector<int> widths;
     widths.push_back(1000);
@@ -65,6 +66,51 @@ void generate_syntectic_dataset () {
         }
     }
 }
+
+void getDegeneratePoints (cv::Mat &points) {
+    int width = 600;
+    int height = 600;
+    cv::Mat image(height, width, CV_8UC3, cv::Scalar(255, 255, 255)); // Create a 600*600 image
+
+//    int N = 15;
+//    points = cv::Mat_<float>(N, 2);
+    cv::Mat pt;
+    points.release();
+
+    // straight line. good points
+    for (int i = 50; i <= 550; i+=50) {
+        pt = (cv::Mat_<float>(1, 2) << i, i);
+        points.push_back(pt);
+    }
+
+    // add degenerate data
+//    for (int i = 0; i < 40; i++) {
+//        int x = 300 + random() % 40;
+//        int y = 400 + random() % 40;
+//
+//        pt = (cv::Mat_<float>(1,2) << x, y);
+//        points.push_back(pt);
+//    }
+
+    // add another degenerate data
+    for (int r = 40; r >= 10; r -= 10) {
+        for (int x = -r; x <= r; x += 2) {
+            float y1 = sqrt (r*r - x*x) + 410;
+            float y2 = -sqrt (r*r - x*x) + 410;
+            pt = (cv::Mat_<float>(1,2) << x+240, y1);
+            points.push_back(pt);
+            pt = (cv::Mat_<float>(1,2) << x+240, y2);
+            points.push_back(pt);
+        }
+    }
+
+
+    for (int i = 0; i < points.rows; ++i) {
+        cv::circle(image, cv::Point (points.at<float>(i,0), points.at<float>(i,1)), 3, cv::Scalar(0, 0, 0), -1);
+    }
+    cv::imwrite ("../dataset/degenerate_image.png", image);
+}
+
 
 void generate (std::vector<cv::Point2f> &points_out, bool reset_time, bool getGT, cv::Mat &gt_model) {
     if (reset_time) srand (time(NULL));

@@ -38,11 +38,11 @@ void Tests::testFundamentalFitting() {
 //    }
 
     // -------------------------- uniform -------------------------------------
-//    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
+    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Uniform);
     // ------------------------------------------------------------------------
 
 //     -------------------------- Prosac -------------------------------------
-    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
+//    Model model(threshold, confidence, knn, ESTIMATOR::Fundamental, SAMPLER::Prosac);
     // ------------------------------------------------------------------------
 
     model.lo = LocOpt ::NullLO;

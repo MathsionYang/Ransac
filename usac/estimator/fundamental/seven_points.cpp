@@ -85,8 +85,8 @@ unsigned int FundamentalSolver::SevenPointsAlgorithm (const int * const sample, 
     // => use the last two singular vectors as a basis of the space
     // (according to SVD properties)
     cv::SVDecomp (A, W, U, Vt, cv::SVD::MODIFY_A + cv::SVD::FULL_UV);
-    f1 = v + 7*9;
-    f2 = v + 8*9;
+    f1 = v + 7*9; // 8 row
+    f2 = v + 8*9; // 9 row, not v is transposed
 
     // f1, f2 is a basis => lambda*f1 + mu*f2 is an arbitrary f. matrix.
     // as it is determined up to a scale, normalize lambda & mu (lambda + mu = 1),

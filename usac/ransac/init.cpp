@@ -1,6 +1,6 @@
 #include "init.hpp"
 
-void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points) {
+void Init::initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points) {
     if (est == ESTIMATOR::Line2d) {
         estimator = new Line2DEstimator(points);
 
@@ -23,7 +23,7 @@ void initEstimator (Estimator *& estimator, ESTIMATOR est, const cv::Mat& points
 }
 
 //-----------------------------------------------------------------------------------------
-void initScore (Score *& score, SCORE sc) {
+void Init::initScore (Score *& score, SCORE sc) {
     if (sc == SCORE::RANSAC) {
         score = new RansacScore;
     } else if (sc == SCORE::MSAC) {
@@ -38,7 +38,7 @@ void initScore (Score *& score, SCORE sc) {
 }
 
 //-----------------------------------------------------------------------------------------
-void initQuality (Quality *& quality, SCORE sc) {
+void Init::initQuality (Quality *& quality, SCORE sc) {
     if (sc == SCORE::RANSAC) {
         quality = new RansacQuality;
     } else if (sc == SCORE::MSAC) {
@@ -52,8 +52,18 @@ void initQuality (Quality *& quality, SCORE sc) {
     }
 }
 
+
 // ----------------------------------------------------------------------------------------
-void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points) {
+void Init::initDegeneracy (Degeneracy *& degeneracy, Quality * quality, cv::InputArray points, Model * model) {
+    if (model->estimator == ESTIMATOR::Fundamental) {
+        degeneracy = new FundamentalDegeneracy(points, quality, model->threshold, model->score);
+    } else {
+        degeneracy = new Degeneracy;
+    }
+}
+
+// ----------------------------------------------------------------------------------------
+void Init::initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& points) {
      unsigned int points_size = points.rows;
 
      if (model->sampler == SAMPLER::Uniform) {
@@ -82,12 +92,12 @@ void initSampler (Sampler *& sampler, const Model * const model, const cv::Mat& 
          exit (111);
      }
 }
-void initTerminationCriteria (TerminationCriteria *& termination_criteria,
+void Init::initTerminationCriteria (TerminationCriteria *& termination_criteria,
         const Model * const model, unsigned int points_size) {
     termination_criteria = new StandardTerminationCriteria (model, points_size);
 }
 
-void initProsacTerminationCriteria (TerminationCriteria *& termination_criteria, Sampler *& prosac_sampler,
+void Init::initProsacTerminationCriteria (TerminationCriteria *& termination_criteria, Sampler *& prosac_sampler,
             const Model * const model, Estimator * estimator, unsigned int points_size) {
 
     termination_criteria = new ProsacTerminationCriteria
@@ -98,7 +108,7 @@ void initProsacTerminationCriteria (TerminationCriteria *& termination_criteria,
     ((ProsacTerminationCriteria *) termination_criteria)->setLargestSampleSize(((ProsacSampler *) prosac_sampler)->getLargestSampleSize());
 }
 
-void initLocalOptimization (LocalOptimization *& local_optimization, Model * model, Estimator * estimator,
+void Init::initLocalOptimization (LocalOptimization *& local_optimization, Model * model, Estimator * estimator,
           Quality * quality, unsigned int points_size) {
 
      if (model->lo == LocOpt::InItLORsc || model->lo == LocOpt::InItFLORsc) {

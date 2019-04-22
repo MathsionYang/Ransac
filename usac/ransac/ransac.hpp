@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef RANSAC_RANSAC_H
 #define RANSAC_RANSAC_H
 
@@ -25,6 +21,7 @@ protected:
     Estimator * estimator;
     LocalOptimization * local_optimization;
     SPRT * sprt;
+    Degeneracy * degeneracy;
 
     Score *best_score, *current_score;
 
@@ -43,6 +40,7 @@ public:
         delete (termination_criteria);
         delete (ransac_output);
         delete (current_score); delete (best_score);
+        delete (degeneracy);
     }
 
     Ransac (Model * model_, cv::InputArray points_) : points ((float *)points_.getMat().data) {
@@ -54,22 +52,21 @@ public:
         points_size = points_.getMat().rows;
 //        std::cout << "points size = " << points_size << "\n";
 
-        initEstimator (estimator, model->estimator, points_.getMat());
-        initSampler (sampler, model, points_.getMat());
+        Init::initEstimator (estimator, model->estimator, points_.getMat());
+        Init::initSampler (sampler, model, points_.getMat());
 
         // init score
-        initScore(current_score, model->score);
-        initScore(best_score, model->score);
-
-        std::cout << current_score->score << " score1\n";
-        std::cout << best_score->score << " score2\n";
+        Init::initScore(current_score, model->score);
+        Init::initScore(best_score, model->score);
 
         // Init quality
-        initQuality (quality, model->score);
+        Init::initQuality (quality, model->score);
         quality->init(points_size, model->threshold, estimator);
-        //
 
-        initLocalOptimization(local_optimization, model, estimator, quality, points_size);
+        // Init degeneracy
+        Init::initDegeneracy(degeneracy, quality, points_, model);
+
+        Init::initLocalOptimization(local_optimization, model, estimator, quality, points_size);
 
         // Get neighbors
         cv::Mat neighbors_dists;
@@ -94,9 +91,9 @@ public:
 
         // init termination criteria
         if (model->sampler == SAMPLER::Prosac) {
-            initProsacTerminationCriteria(termination_criteria, sampler, model, estimator, points_size);
+            Init::initProsacTerminationCriteria(termination_criteria, sampler, model, estimator, points_size);
         } else {
-            initTerminationCriteria(termination_criteria, model, points_size);
+            Init::initTerminationCriteria(termination_criteria, model, points_size);
         }
         // ----------------------------
 

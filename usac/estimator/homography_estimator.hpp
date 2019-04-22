@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef RANSAC_HOMOGRAPHYESTIMATOR_H
 #define RANSAC_HOMOGRAPHYESTIMATOR_H
 
@@ -38,9 +34,9 @@ public:
     }
 
     unsigned int EstimateModel(const int * const sample, std::vector<Model>& models) override {
-//        if (! isSubsetGood(sample)){
+        if (! isSubsetGood(sample)){
 //            return 0;
-//        }
+        }
 
         cv::Mat H;
         if (! dlt.DLT4p (sample, H)) {

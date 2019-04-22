@@ -41,6 +41,7 @@ void Tests::testLineFitting() {
     std::vector<int> gt_inliers = img_data.getGTInliers(5 /* threshold */);
     std::vector<int> gt_sorted_inliers = img_data.getGTInliersSorted(5 /* threshold */);
 
+
 //    std::cout << "generated points\n";
 
     unsigned int knn = 13;
@@ -69,16 +70,17 @@ void Tests::testLineFitting() {
      model.lo = LocOpt ::NullLO;
      model.setSprt(0);
      model.setNeighborsType(NeighborsSearch::Nanoflann);
+//    model.reset_random_generator = false;
 
     if (model.sampler ==  SAMPLER::Prosac) {
-//        test (sorted_pts, model, img_name, dataset, true, gt_sorted_inliers);
-        // getStatisticalResults(sorted_points, model, 500, true, gt_sorted_inliers, false, nullptr);
+        test (sorted_pts, &model, img_name, dataset, true, gt_sorted_inliers);
+        // getStatisticalResults(sorted_points, &model, 500, true, gt_sorted_inliers, false, nullptr);
     } else {
-//        test (pts, model, img_name, dataset, true, gt_inliers);
-//        getStatisticalResults(points, model, 500, true, gt_inliers, false, nullptr);
+        test (pts, &model, img_name, dataset, true, gt_inliers);
+//        getStatisticalResults(points, &model, 500, true, gt_inliers, false, nullptr);
     }
 
-   store_results_line2d();
+//   store_results_line2d();
 }
 
 void store_results_line2d () {

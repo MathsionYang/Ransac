@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #ifndef QUALITY_H
 #define QUALITY_H
 
@@ -47,7 +43,6 @@ public:
         threshold = threshold_;
         estimator = estimator_;
         isinit = true;
-        std::cout << "thr " <<threshold << "\n";
     }
 
     /*

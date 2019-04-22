@@ -52,7 +52,7 @@ void Tests::test (cv::Mat points,
 
     if (gt) {
         Estimator * estimator;
-        initEstimator(estimator, model->estimator, points);
+        Init::initEstimator(estimator, model->estimator, points);
         float error = Quality::getErrorToGTInliers(estimator, ransacOutput.getModel()->returnDescriptor(), gt_inliers);
         std::cout << "Ground Truth number of inliers for same model parametres is " << gt_inliers.size() << "\n";
         std::cout << "Error to GT inliers " << error << "\n";
@@ -60,8 +60,8 @@ void Tests::test (cv::Mat points,
     }
 
     // save result and compare with last run
-    Logging::compare(model, &ransacOutput);
-    Logging::saveResult(model, &ransacOutput);
+    Logging::compare(&ransacOutput);
+    Logging::saveResult(&ransacOutput);
     std::cout << "-----------------------------------------------------------------------------------------\n";
 
     Drawing::draw(ransacOutput.getModel(), dataset, img_name);

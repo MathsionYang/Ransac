@@ -152,11 +152,15 @@ public:
      */
     static void draw_line (Model * const model, DATASET dataset, const std::string &img_name) {
         ImageData imageData(dataset, img_name);
+
         cv::Mat points = imageData.getPoints();
         cv::Mat image = imageData.getImage1();
+
         Line2DEstimator est (points);
         std::vector<int> inliers;
+        std::cout << "model " << model->returnDescriptor() << "\n";
         Quality::getInliers(&est, model->returnDescriptor(), model->threshold, points.rows, inliers);
+        std::cout << "num inliers " << inliers.size() << "\n";
         showInliers(points, inliers, image);
         draw_line_model(model, cv::Scalar(255, 0, 0), image, true);
 

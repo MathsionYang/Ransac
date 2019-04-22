@@ -1,7 +1,3 @@
-// This file is part of OpenCV project.
-// It is subject to the license terms in the LICENSE file found in the top-level directory
-// of this distribution and at http://opencv.org/license.html.
-
 #include "ransac.hpp"
 #include "../local_optimization/irls.hpp"
 #include "../local_optimization/inner_local_optimization.hpp"
@@ -70,6 +66,8 @@ void Ransac::run() {
             }
 
             if (current_score->better(best_score)) {
+
+                degeneracy->fix(sample, &models[i], current_score);
 
                 // update current model and current score by inner and iterative local optimization
                 // if inlier number is too small, do not update
@@ -149,6 +147,12 @@ void Ransac::run() {
         best_score->copyFrom(current_score);
         best_model.setDescriptor(non_minimal_model.returnDescriptor());
     }
+
+//    std::cout << "best model " << best_model.returnDescriptor() << "\n";
+//    std::cout << best_model.threshold << " b m thr\n";
+//    std::cout << models[0].threshold << " c m thr\n";
+//    cv::Mat pts;
+//    getDegeneratePoints(pts);
 
     std::chrono::duration<float> fs = std::chrono::steady_clock::now() - begin_time;
     // ================= here is ending ransac main implementation ===========================
